@@ -46,7 +46,6 @@
 #include "../Lib/TLibCommon/Debug.h"
 
 //By Aslan 自定义变量
-
 int CTUIndex = 0;//累计CTU的数量
 int CUComCount = -1;//累计CUCom调用
 int CurrentPOC = 0;//标记当前帧号

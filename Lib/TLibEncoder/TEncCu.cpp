@@ -54,7 +54,8 @@ extern int CUPartSize[85];
 extern int CUResetPart;
 extern int CUTargetMode[85];
 extern int Capacity;//统计嵌入容量
-
+extern int EMD_16_CUTargetMode[16];
+extern int CUnum_16 ;
 int ChangeFlag = 0;
 
 //! \ingroup TLibEncoder
@@ -249,6 +250,11 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
   int i = 0;
   int j = 0;
   int n = 0;
+  int index = 0;//lzh下标
+  int n1=0;
+  int n2=0;
+  int n3=0;
+  int randnum=0;
   if (pCtu->getSlice()->getSliceType() != I_SLICE)//
   {
 	  CTUIndex = pCtu->getCtuRsAddr()+1;
@@ -285,7 +291,7 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
   if (CUComCount>84 && pCtu->getSlice()->getSliceType() != I_SLICE)
   {
 
-	  /*-----------原信息隐藏算法屏蔽5.6号-------------*/
+	  ///*-----------原信息隐藏算法屏蔽5.6号-------------*/
 	  //if (CUDepth[0] != 0)//被划分 CUTargetMode[0] = 255; 判断是不是64
 	  //{
 		 // CUTargetMode[0] = 255;
@@ -689,24 +695,458 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 			//	  ChangeFlag = 1;
 			//  }
 		 // }
-		  //printf(">>>>>>>>>>>>TargetMode 0 ==  %d  ----\n",  CUTargetMode[0]);
-	  }
+		 // //printf(">>>>>>>>>>>>TargetMode 0 ==  %d  ----\n",  CUTargetMode[0]);
+	  //}
 
 
 			/*>>>>>>>>>>>>>>>>>>>原信息隐藏算法屏蔽5.6号<<<<<<<<<<<<<<<<< */
 
+	  if (CUDepth[0] != 0)//被划分 CUTargetMode[0] = 255; 判断是不是64
+	  {
+		  CUTargetMode[0] = 255;
+		  for (j = 1; j <= 64; j = j + 21)
+		  {
+			  if (CUDepth[j] == 11) //index是85个PU模式，十位是本来应该depth，个位是本身的level。
+			  {//没有细分----保存当前Mode为TargetMode
+				  //printf("----Fram:%d---CTU:%d--j:%d**32x32***partsize: %d -------------\n",currentPOC, CTUIndex, j, CUPartSize[j]);
+				  CUTargetMode[j] = CUPartSize[j];
+				  //printf(">>>>>>>>>>>>TargetMode %d ==  %d  ----\n", j, CUTargetMode[j]);
+				 
+				  if (CUPartSize[j] == 1)
+				  {
+
+					  Capacity++; 
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity++;
+						  if (rand() % 100 > 50)//%50概率修改为4
+						  {
+							  CUTargetMode[j] = 4;
+						  }
+						  else
+						  {
+							  CUTargetMode[j] = 5;
+						  }
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[j] == 2)
+				  {
+
+					  Capacity++;
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity++;
+						  if (rand() % 100 > 50)//%50概率修改为6
+						  {
+							  CUTargetMode[j] = 6;
+						  }
+						  else
+						  {
+							  CUTargetMode[j] = 7;
+						  }
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[j] == 4)
+				  {
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  if (rand() % 100 > 50)//%50概率修改为5
+						  {
+							  CUTargetMode[j] = 4;
+						  }
+						  else
+						  {
+							  CUTargetMode[j] = 5;
+						  }
+						  Capacity += 2;
+						  ChangeFlag = 1;
+					  }
+					  else
+					  {
+						  Capacity++;
+						  CUTargetMode[j] = 1;
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[j] == 5)
+				  {
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity += 2;
+						  if (rand() % 100 > 50)//%50概率修改为4
+						  {
+							  CUTargetMode[j] = 4;
+						  }
+						  else
+						  {
+							  CUTargetMode[j] = 5;
+						  }
+						  ChangeFlag = 1;
+					  }
+					  else
+					  {
+						  Capacity++;
+						  CUTargetMode[j] = 1;
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[j] == 6)
+				  {
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity += 2;
+						  if (rand() % 100 > 50)//%50概率修改为7
+						  {
+							  CUTargetMode[j] = 6;
+						  }
+						  else
+						  {
+							  CUTargetMode[j] = 7;
+						  }
+						  ChangeFlag = 1;
+					  }
+					  else
+					  {
+						  Capacity++;
+						  CUTargetMode[j] = 2;
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[j] == 7)
+				  {
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity += 2;
+						  if (rand() % 100 > 50)//%50概率修改为6
+						  {
+							  CUTargetMode[j] = 6;
+						  }
+						  else
+						  {
+							  CUTargetMode[j] = 7;
+						  }
+						  ChangeFlag = 1;
+					  }
+					  else
+					  {
+						  Capacity++;
+						  CUTargetMode[j] = 2;
+						  ChangeFlag = 1;
+					  }
+				  }
+
+
+			  }
+			  else
+			  {//被划分，TargetMode改为255,然后看内部CU
+				  CUTargetMode[j] = 255;
+				  for (i = 1+j; i <= 16+j; i = i + 5)//判断2，7，12，17四个CU
+				  {
+					  if (CUDepth[i] == 22)//划分成了16x16
+					  {
+						  //printf("----Fram:%d---CTU:%d--i:%d**16x16***partsize: %d -------------\n", currentPOC, CTUIndex, i, CUPartSize[i]);
+						  //CUTargetMode[i] = 2;
+						  CUTargetMode[i] = CUPartSize[i];
+						  EMD_16_CUTargetMode[CUnum_16]=i;
+						   CUnum_16++; 
+						/* 屏蔽16x16原本的，lzh*/
+						  if (CUPartSize[i] == 0)
+						  {
+						//	  CUTargetMode[i] = 0;
+						  }
+						  else if (CUPartSize[i] == 1)
+						  {
+							  //Capacity++;
+							  //if (rand() % 100 > 50)//%50概率修改
+							  //{
+								 // Capacity++;
+								 // if (rand() % 100 > 50)//%50概率修改为4
+								 // {
+									//  CUTargetMode[i] = 4;
+								 // }
+								 // else
+								 // {
+									//  CUTargetMode[i] = 5;
+								 // }
+								 // ChangeFlag = 1;
+							  //}
+						  }
+						  else if (CUPartSize[i] == 2)
+						  {
+							  //Capacity++;
+							  //if (rand() % 100 > 50)//%50概率修改
+							  //{
+								 // Capacity++;
+								 // if (rand() % 100 > 50)//%50概率修改为6
+								 // {
+									//  CUTargetMode[i] = 6;
+								 // }
+								 // else
+								 // {
+									//  CUTargetMode[i] = 7;
+								 // }
+								 // ChangeFlag = 1;
+							  //}
+						  }
+						  else if (CUPartSize[i] == 4)
+						  {
+							  //if (rand() % 100 > 50)//%50概率修改
+							  //{
+								 // if (rand() % 100 > 50)//%50概率修改为5
+								 // {
+									//  CUTargetMode[i] = 4;
+								 // }
+								 // else
+								 // {
+									//  CUTargetMode[i] = 5;
+								 // }
+								 // Capacity += 2;
+								 // ChangeFlag = 1;
+							  //}
+							  //else
+							  //{
+								 // Capacity++;
+								 // CUTargetMode[i] = 1;
+								 // ChangeFlag = 1;
+							  //}
+						  }
+						  else if (CUPartSize[i] == 5)
+						  {
+							  //if (rand() % 100 > 50)//%50概率修改
+							  //{
+								 // Capacity += 2;
+								 // if (rand() % 100 > 50)//%50概率修改为4
+								 // {
+									//  CUTargetMode[i] = 4;
+								 // }
+								 // else
+								 // {
+									//  CUTargetMode[i] = 5;
+								 // }
+								 // ChangeFlag = 1;
+							  //}
+							  //else
+							  //{
+								 // Capacity++;
+								 // CUTargetMode[i] = 1;
+								 // ChangeFlag = 1;
+							  //}
+						  }
+						  else if (CUPartSize[i] == 6)
+						  {
+							  //if (rand() % 100 > 50)//%50概率修改
+							  //{
+								 // Capacity += 2;
+								 // if (rand() % 100 > 50)//%50概率修改为7
+								 // {
+									//  CUTargetMode[i] = 6;
+								 // }
+								 // else
+								 // {
+									//  CUTargetMode[i] = 7;
+								 // }
+								 // ChangeFlag = 1;
+							  //}
+							  //else
+							  //{
+								 // Capacity++;
+								 // CUTargetMode[i] = 2;
+								 // ChangeFlag = 1;
+							  //}
+						  }
+						  else if (CUPartSize[i] == 7)
+						  {
+							  //if (rand() % 100 > 50)//%50概率修改
+							  //{
+								 // Capacity += 2;
+								 // if (rand() % 100 > 50)//%50概率修改为6
+								 // {
+									//  CUTargetMode[i] = 6;
+								 // }
+								 // else
+								 // {
+									//  CUTargetMode[i] = 7;
+								 // }
+								 // ChangeFlag = 1;
+							  //}
+							  //else
+							  //{
+								 // Capacity++;
+								 // CUTargetMode[i] = 2;
+								 // ChangeFlag = 1;
+							  //}
+						  }
+						 // */
+						  //printf(">>>>>>>>>>>>TargetMode %d ==  %d  ----\n", i, CUTargetMode[i]);
+							//屏蔽16x16原本的，lzh
+					  }
+					  else//划分成了8x8x4   TargetMode改为255  Question1
+					  {
+						  CUTargetMode[i] = 255;
+						  ChangeFlag = 1;
+
+						  /*>>>>>>>>>>>>lzh<<<<<<<<<<<<<<<<<<*/
+			//			 CUTargetMode[i] =  CUPartSize[i];      
+						  /*>>>>>>>>>>>>lzh<<<<<<<<<<<<<<<<<<*/
+
+						  for (n = 1; n <= 4; n++)
+						  {
+							  Capacity += 2;
+							  if (rand() % 100 > 50)
+							  {
+								  if (rand() % 100 > 50)
+								  {
+									  CUTargetMode[i + n] = 0;
+								  }
+								  else
+								  {
+									  CUTargetMode[i + n] = 1;
+								  }
+							  }
+							  else
+							  {
+								  if (rand() % 100 > 50)
+								  {
+									  CUTargetMode[i + n] = 2;
+								  }
+								  else
+								  {
+									  CUTargetMode[i + n] = 3;
+								  }
+							  }
+						  }
 
 
 
+						  //printf("CU%d Divided into 8x8x4----------------------------------\n",i);
+					  }
+
+				  }
+			  }
+		  }
+	  }
+	  else//64没有划分
+	  {
+		  CUTargetMode[0] = CUPartSize[0];//Level3
+		  //printf("----Fram:%d---CTU:%d-------64x64-------------\n", currentPOC, CTUIndex);
+		  
+		  if (CUPartSize[0] == 1)
+		  {
+			  Capacity++;
+			  if (rand() % 100 > 50)//50%几率修改
+			  {
+				  Capacity++;
+				  if (rand() % 100 > 50)
+				  {
+					  CUTargetMode[0] = 4;
+				  }
+				  else
+				  {
+					  CUTargetMode[0] = 5;
+				  }
+				  ChangeFlag = 1;
+			  }
+		  }
+		  else if (CUPartSize[0] == 2)
+		  {
+			  Capacity++;
+			  if (rand() % 100 > 50)//50%几率修改
+			  {
+				  Capacity++;
+				  if (rand() % 100 > 50)
+				  {
+					  CUTargetMode[0] = 6;
+				  }
+				  else
+				  {
+					  CUTargetMode[0] = 7;
+				  }
+				  ChangeFlag = 1;
+			  }
+		  }
+		  else if (CUPartSize[0] == 4 || CUPartSize[0] == 5) //question2
+		  {
+			  if (rand() % 100 > 50)//%50概率修改
+			  {
+				  if (rand() % 100 > 50)//%50概率修改为5
+				  {
+					  CUTargetMode[0] = 4;
+				  }
+				  else
+				  {
+					  CUTargetMode[0] = 5;
+				  }
+				  Capacity += 2;
+				  ChangeFlag = 1;
+			  }
+			  else
+			  {
+				  Capacity++;
+				  CUTargetMode[0] = 1;
+				  ChangeFlag = 1;
+			  }
+		  }
+		  else if (CUPartSize[0] == 6 || CUPartSize[0] == 7)
+		  {
+			  if (rand() % 100 > 50)//%50概率修改
+			  {
+				  if (rand() % 100 > 50)//%50概率修改为5
+				  {
+					  CUTargetMode[0] = 6;
+				  }
+				  else
+				  {
+					  CUTargetMode[0] = 7;
+				  }
+				  Capacity += 2;
+				  ChangeFlag = 1;
+			  }
+			  else
+			  {
+				  Capacity++;
+				  CUTargetMode[0] = 2;
+				  ChangeFlag = 1;
+			  }
+		  }
+		  //printf(">>>>>>>>>>>>TargetMode 0 ==  %d  ----\n",  CUTargetMode[0]);
+	  }
+
+	  /*>>>>>>>>>>lzh<<<<<<<<信息隐藏算法*/
+	  if(CUnum_16>=2) //如果一个CTU的16x16个数>
+	  {
+		for(int ii =0;ii<=CUnum_16;ii++)
+		  {
+			  randnum = rand() % 7;
+			  if ( randnum == 0)//N=3,2N+1=7,不改PU=3
+				{
+					for (int i1=0; i1<2;i1++)
+					{
+						//每一维+1或-1，算出来就OK；
+					}
+				}
+			  else if ( randnum == 1)
+				 {
+
+				 }
+		  }
+	  }
 	  for (int targetmode_li = 0;targetmode_li<85;targetmode_li++)
 	  {
 		  printf(">>>>>>>>>>>>TargetMode %d =  %d  -- change flag = %d--\n", targetmode_li, CUPartSize[targetmode_li], ChangeFlag);
+		  printf(">>>>>>>>>>>>Cupartsize %d =  %d  -- change flag = %d--\n", targetmode_li, CUPartSize[targetmode_li], ChangeFlag);
 		  //		
 	  } 
 	   for (int targetmode_li = 0;targetmode_li<85;targetmode_li++)
 	  {
 		    printf(">>>>CUDepth[%d]=%d >>>>>>>>\n",targetmode_li,CUDepth[targetmode_li]);
 		  }
+
+	   for(int ii = 0; ii<16;ii++){
+	   EMD_16_CUTargetMode[ii] =  111 ;// 清零
+	   }
+	   CUnum_16=0;// 清零
   }
 
   if (1 && CUComCount>84 && pCtu->getSlice()->getSliceType() != I_SLICE && ChangeFlag==1)//如果CUPartSize[84]==255说明该CTU不完整，不可用。 currentPOC == 6 &&       加上&&0条件代表不进行修改。

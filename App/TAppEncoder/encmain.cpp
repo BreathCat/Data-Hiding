@@ -56,7 +56,7 @@ int CUPartSize[85] = { 255 };//保存CU内PU的划分模式
 int CUResetPart= 0;//是否重设CU的划分模式标志位
 int CUTargetMode[85] = { 255 };//当前CU的目标划分模式
 
-int Capacity = 0;//统计嵌入容量
+double Capacity = 0;//统计嵌入容量
 double PSNRValue = 0;//记录PSNR结果
 double BitRateValue = 0;//记录比特率结果
 int RecordFlag = 0;
@@ -64,7 +64,7 @@ int RecordFlag = 0;
 extern string binname;
 
 //By lzh自定义变量
-int EMD_16_CUTargetMode[16] = { 111 };  //存下分成16X16的CU的下标，从85个总PU中判断16个。如果一个CTU有8个16x16的CU，则前8个全都赋下标.
+int EMD_16_CUTargetMode[17] = { 111 };  //存下分成16X16的CU的下标，从85个总PU中判断16个。如果一个CTU有8个16x16的CU，则前8个全都赋下标.
 int CUnum_16 = 0;//一个CTU里的16x16的CU总数
 // ====================================================================================================================
 // Main function
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
 	 // printf("%2dDepth:  %d \tPartMod:  %d\n", i, CUDepth[i], CUPartSize[i]);
   //}
 
-  printf("The capacity of this sequence is : %d bits.\n", Capacity);
+  printf("The capacity of this sequence is : %.2f bits.\n", Capacity);
 
 
 

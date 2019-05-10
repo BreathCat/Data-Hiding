@@ -716,7 +716,7 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 				  //printf("----Fram:%d---CTU:%d--j:%d**32x32***partsize: %d -------------\n",currentPOC, CTUIndex, j, CUPartSize[j]);
 				  CUTargetMode[j] = CUPartSize[j];
 				  //printf(">>>>>>>>>>>>TargetMode %d ==  %d  ----\n", j, CUTargetMode[j]);
-				 
+				
 				  if (CUPartSize[j] == 1)
 				  {
 
@@ -849,8 +849,146 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 				  CUTargetMode[j] = 255;
 				  for (i = 1+j; i <= 16+j; i = i + 5)//判断2，7，12，17四个CU
 				  {
+					   CUTargetMode[j] = 255;
+
+					  
 					  if (CUDepth[i] == 22)//划分成了16x16
 					  {
+						    CUTargetMode[i] = CUPartSize[i];
+						  
+	       //>>>>>>>>>>>>>>>>>>>>以下为谢文超算法<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+						/* 屏蔽16x16原本的，lzh*/
+						  if (CUPartSize[i] == 0)
+						  {
+							  CUTargetMode[i] = 0;
+						  }
+						  else if (CUPartSize[i] == 1)
+						  {
+							  Capacity++;
+							  if (rand() % 100 > 50)//%50概率修改
+							  {
+								  Capacity++;
+								  if (rand() % 100 > 50)//%50概率修改为4
+								  {
+									  CUTargetMode[i] = 4;
+								  }
+								  else
+								  {
+									  CUTargetMode[i] = 5;
+								  }
+								  ChangeFlag = 1;
+							  }
+						  }
+						  else if (CUPartSize[i] == 2)
+						  {
+							  Capacity++;
+							  if (rand() % 100 > 50)//%50概率修改
+							  {
+								  Capacity++;
+								  if (rand() % 100 > 50)//%50概率修改为6
+								  {
+									  CUTargetMode[i] = 6;
+								  }
+								  else
+								  {
+									  CUTargetMode[i] = 7;
+								  }
+								  ChangeFlag = 1;
+							  }
+						  }
+						  else if (CUPartSize[i] == 4)
+						  {
+							  if (rand() % 100 > 50)//%50概率修改
+							  {
+								  if (rand() % 100 > 50)//%50概率修改为5
+								  {
+									  CUTargetMode[i] = 4;
+								  }
+								  else
+								  {
+									  CUTargetMode[i] = 5;
+								  }
+								  Capacity += 2;
+								  ChangeFlag = 1;
+							  }
+							  else
+							  {
+								  Capacity++;
+								  CUTargetMode[i] = 1;
+								  ChangeFlag = 1;
+							  }
+						  }
+						  else if (CUPartSize[i] == 5)
+						  {
+							  if (rand() % 100 > 50)//%50概率修改
+							  {
+								  Capacity += 2;
+								  if (rand() % 100 > 50)//%50概率修改为4
+								  {
+									  CUTargetMode[i] = 4;
+								  }
+								  else
+								  {
+									  CUTargetMode[i] = 5;
+								  }
+								  ChangeFlag = 1;
+							  }
+							  else
+							  {
+								  Capacity++;
+								  CUTargetMode[i] = 1;
+								  ChangeFlag = 1;
+							  }
+						  }
+						  else if (CUPartSize[i] == 6)
+						  {
+							  if (rand() % 100 > 50)//%50概率修改
+							  {
+								  Capacity += 2;
+								  if (rand() % 100 > 50)//%50概率修改为7
+								  {
+									  CUTargetMode[i] = 6;
+								  }
+								  else
+								  {
+									  CUTargetMode[i] = 7;
+								  }
+								  ChangeFlag = 1;
+							  }
+							  else
+							  {
+								  Capacity++;
+								  CUTargetMode[i] = 2;
+								  ChangeFlag = 1;
+							  }
+						  }
+						  else if (CUPartSize[i] == 7)
+						  {
+							  if (rand() % 100 > 50)//%50概率修改
+							  {
+								  Capacity += 2;
+								  if (rand() % 100 > 50)//%50概率修改为6
+								  {
+									  CUTargetMode[i] = 6;
+								  }
+								  else
+								  {
+									  CUTargetMode[i] = 7;
+								  }
+								  ChangeFlag = 1;
+							  }
+							  else
+							  {
+								  Capacity++;
+								  CUTargetMode[i] = 2;
+								  ChangeFlag = 1;
+							  }
+						  }
+
+//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>以上为谢文超算法<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
 						  CUTargetMode[i] = CUPartSize[i]; //将PU6当成PU1来修改
 						
 						   EMD_16_CUTargetMode[CUnum_16]=i; 
@@ -989,8 +1127,8 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 		  //printf(">>>>>>>>>>>>TargetMode 0 ==  %d  ----\n",  CUTargetMode[0]);
 	  }
 
-	  /*>>>>>>>>>>lzh<<<<<<<<信息隐藏算法*/
-	  if(CUnum_16>=2) //如果一个CTU的16x16个数>
+/*>>>>>>>>>>>>>>>>>>>>>>lzh 16x16 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
+	  if(CUnum_16>=2&&0) //如果一个CTU的16x16个数,屏蔽这个if就屏蔽了lzh的算法
 	  {
 
 		for(ii =0;ii<=CUnum_16;ii = ii+3) //ii指的是16x16  的target
@@ -1271,6 +1409,10 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 			  }
 		  }
 	  }
+
+/*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 16x16 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
+
+
 	  for (int targetmode_li = 0;targetmode_li<16;targetmode_li++)
 	  {
 		  printf(">>>>>>>>>>>>EMD_16_CUTargetMode %d =  %d  -- \n", targetmode_li, EMD_16_CUTargetMode[targetmode_li]);

@@ -37,6 +37,7 @@
 
 #include <time.h>
 #include <iostream>
+#include <cstdio> 
 #include "TAppEncTop.h"
 #include "TAppCommon/program_options_lite.h"
 
@@ -142,9 +143,12 @@ int main(int argc, char* argv[])
 
   if (EncodeDataFile.is_open())
   {
-	  string temp = "";
-
-	  temp = to_string(static_cast<long long>(PSNRValue));
+	//  string temp = "";
+	  
+	  char buffer [20];
+	  sprintf(buffer,"%.4f",PSNRValue);
+	  string temp = buffer;
+	//  temp = to_string(static_cast<long long>(PSNRValue));
 	  EncodeDataFile << "PSNR    " + temp + "\n";
 
 	  temp = to_string(static_cast<long long>(BitRateValue));

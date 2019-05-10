@@ -705,8 +705,7 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 	  //}
 
 
-			/*>>>>>>>>>>>>>>>>>>>原信息隐藏算法屏蔽5.6号<<<<<<<<<<<<<<<<< */
-
+	
 	  if (CUDepth[0] != 0)//被划分 CUTargetMode[0] = 255; 判断是不是64
 	  {
 		  CUTargetMode[0] = 255;
@@ -852,13 +851,11 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 				  {
 					  if (CUDepth[i] == 22)//划分成了16x16
 					  {
-						  CUTargetMode[i] = CUPartSize[i];
-						  if (CUPartSize[i] != 6) //不修改6
-						  {
-						   EMD_16_CUTargetMode[CUnum_16]=i;
+						  CUTargetMode[i] = CUPartSize[i]; //将PU6当成PU1来修改
+						
+						   EMD_16_CUTargetMode[CUnum_16]=i; 
 						   CUnum_16++; 
-						   ChangeFlag =1;
-						  }
+						  
 						 
 					  }
 					  else//划分成了8x8x4   TargetMode改为255  Question1
@@ -1009,17 +1006,17 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 				  case 0:
 					if((EMD_SUM +1) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii]] =( CUTargetMode[EMD_16_CUTargetMode[ii]] +1 )%7;
 						
 					}
 					else if((EMD_SUM +2) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii+1]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii+1]] =( CUTargetMode[EMD_16_CUTargetMode[ii+1]] +1 )%7 ;
 						
 					}
 					else if((EMD_SUM +3) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii+2]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii+2]] = ( CUTargetMode[EMD_16_CUTargetMode[ii+2]] +1 )%7 ;
 						
 					}
 					else if(EMD_SUM  % 7 == randnum +1)
@@ -1041,21 +1038,22 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 					{
 						
 					}
+					break;
 
 				 case 1:
 				    if((EMD_SUM +1) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = ( CUTargetMode[EMD_16_CUTargetMode[ii]] +1 )%7;
 						
 					}
 					if((EMD_SUM +2) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii+1]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii+1]] = ( CUTargetMode[EMD_16_CUTargetMode[ii+1]] +1 )%7;
 						
 					}
 					else if((EMD_SUM +3) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii+2]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii+2]] = ( CUTargetMode[EMD_16_CUTargetMode[ii+2]] +1 )%7;
 						
 					}
 					else if(EMD_SUM  % 7 == randnum +1)
@@ -1077,20 +1075,21 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 					{
 						
 					}
+					break;
 				 case 2:
 					if((EMD_SUM +1) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = ( CUTargetMode[EMD_16_CUTargetMode[ii]] +1 )%7;
 						
 					}
 					else if((EMD_SUM +2) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii+1]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii+1]] = ( CUTargetMode[EMD_16_CUTargetMode[ii+1]] +1 )%7;
 						
 					}
 					else if((EMD_SUM +3) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii+2]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii+2]] = ( CUTargetMode[EMD_16_CUTargetMode[ii+2]] +1 )%7;
 						
 					}
 					else if(EMD_SUM  % 7 == randnum +1)
@@ -1112,21 +1111,21 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 					{
 						
 					}
-
+					break;
 				 case 3:
 					if((EMD_SUM +1) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = ( CUTargetMode[EMD_16_CUTargetMode[ii]] +1 )%7;
 						
 					}
 					else if((EMD_SUM +2) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii+1]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii+1]] = ( CUTargetMode[EMD_16_CUTargetMode[ii+1]] +1 )%7;
 						
 					}
 					else if((EMD_SUM +3) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii+2]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii+2]] = ( CUTargetMode[EMD_16_CUTargetMode[ii+2]] +1 )%7;
 						
 					}
 					else if(EMD_SUM  % 7 == randnum +1)
@@ -1148,21 +1147,21 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 					{
 						
 					}
-
+					break;
 				 case 4:
 					if((EMD_SUM +1) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = ( CUTargetMode[EMD_16_CUTargetMode[ii]] +1 )%7;
 						
 					}
 					else if((EMD_SUM +2) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii+1]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii+1]] = ( CUTargetMode[EMD_16_CUTargetMode[ii+1]] +1 )%7;
 						
 					}
 					else if((EMD_SUM +3) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii+2]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii+2]] = ( CUTargetMode[EMD_16_CUTargetMode[ii+2]] +1 )%7;
 						
 					}
 					else if(EMD_SUM  % 7 == randnum +1)
@@ -1184,21 +1183,21 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 					{
 						
 					}
-
+					break;
 				 case 5:
 					if((EMD_SUM +1) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = ( CUTargetMode[EMD_16_CUTargetMode[ii]] +1 )%7;
 						
 					}
 					else if((EMD_SUM +2) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii+1]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii+1]] = ( CUTargetMode[EMD_16_CUTargetMode[ii+1]] +1 )%7;
 						
 					}
 					else if((EMD_SUM +3) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii+2]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii+2]] = ( CUTargetMode[EMD_16_CUTargetMode[ii+2]] +1 )%7;
 						
 					}
 					else if(EMD_SUM  % 7 == randnum +1)
@@ -1220,21 +1219,21 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 					{
 						
 					}
-
+					break;
 				case 6:
 					if((EMD_SUM +1) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = ( CUTargetMode[EMD_16_CUTargetMode[ii]] +1 )%7;
 						
 					}
 					else if((EMD_SUM +2) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii+1]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii+1]] = ( CUTargetMode[EMD_16_CUTargetMode[ii+1]] +1 )%7;
 						
 					}
 					else if((EMD_SUM +3) % 7 == randnum)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii+2]]++;
+						CUTargetMode[EMD_16_CUTargetMode[ii+2]] = ( CUTargetMode[EMD_16_CUTargetMode[ii+2]] +1 )%7;
 						
 					}
 					else if(EMD_SUM  % 7 == (randnum +1) %7)
@@ -1256,26 +1255,34 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 					{
 						
 					}
-
-					if(CUTargetMode[EMD_16_CUTargetMode[ii]]<0) //时刻注意负数要取补
-						CUTargetMode[EMD_16_CUTargetMode[ii]] = 7 + CUTargetMode[EMD_16_CUTargetMode[ii]];
-					if(CUTargetMode[EMD_16_CUTargetMode[ii+1]<0]) 
-						CUTargetMode[EMD_16_CUTargetMode[ii+1]] = 7 + CUTargetMode[EMD_16_CUTargetMode[ii+1]];
-					if(CUTargetMode[EMD_16_CUTargetMode[ii+2]<0]) 
-						CUTargetMode[EMD_16_CUTargetMode[ii+2]] = 7 + CUTargetMode[EMD_16_CUTargetMode[ii+2]];	
+					break;	
 			  }  
+			  if(CUTargetMode[EMD_16_CUTargetMode[ii]]<0) //时刻注意负数要取补
+			  {
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = 7 + CUTargetMode[EMD_16_CUTargetMode[ii]];
+			  }
+			 if(CUTargetMode[EMD_16_CUTargetMode[ii+1]]<0) 
+			  {
+						CUTargetMode[EMD_16_CUTargetMode[ii+1]] = 7 + CUTargetMode[EMD_16_CUTargetMode[ii+1]];
+			  }
+		     if(CUTargetMode[EMD_16_CUTargetMode[ii+2]]<0) 
+			  {
+						CUTargetMode[EMD_16_CUTargetMode[ii+2]] = 7 + CUTargetMode[EMD_16_CUTargetMode[ii+2]];
+			  }
 		  }
 	  }
-	  for (int targetmode_li = 0;targetmode_li<85;targetmode_li++)
+	  for (int targetmode_li = 0;targetmode_li<16;targetmode_li++)
 	  {
-		  printf(">>>>>>>>>>>>TargetMode %d =  %d  -- change flag = %d--\n", targetmode_li, CUPartSize[targetmode_li], ChangeFlag);
-		  printf(">>>>>>>>>>>>Cupartsize %d =  %d  -- change flag = %d--\n", targetmode_li, CUPartSize[targetmode_li], ChangeFlag);
-		  //		
+		  printf(">>>>>>>>>>>>EMD_16_CUTargetMode %d =  %d  -- \n", targetmode_li, EMD_16_CUTargetMode[targetmode_li]);
+		  		/*>>>>>>>>>>>>>>>>>>>原信息隐藏算法屏蔽5.6号<<<<<<<<<<<<<<<<< */
+    	  		
 	  } 
 	   for (int targetmode_li = 0;targetmode_li<85;targetmode_li++)
 	  {
-		    printf(">>>>CUDepth[%d]=%d >>>>>>>>\n",targetmode_li,CUDepth[targetmode_li]);
-		  }
+		  printf(">>>>>>>>>>>>CUPartSize %d =  %d  --\n", targetmode_li, CUPartSize[targetmode_li]);
+		  printf(">>>>>>>>>>>>CUTargetMode %d =  %d  --\n", targetmode_li, CUTargetMode[targetmode_li]);
+		  printf(">>>>CUDepth[%d]=%d >>>>>>>>\n",targetmode_li,CUDepth[targetmode_li]);
+	  }
 
 	   
   }

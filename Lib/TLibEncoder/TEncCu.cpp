@@ -54,12 +54,20 @@ extern int CUPartSize[85];
 extern int CUResetPart;
 extern int CUTargetMode[85];
 extern double Capacity;//统计嵌入容量
-extern int EMD_16_CUTargetMode[17];
+extern int EMD_16_CUTargetMode[16];
 extern int CUnum_16 ;
+extern int EMD_32_CUTargetMode[4];  
+extern int CUnum_32 ;
+extern int EMD_64_CUTargetMode[1];  
+extern int CUnum_64 ;
+extern int EMD_8_CUTargetMode[64];  
+extern int CUnum_8 ;
+
 int ChangeFlag = 0; //
 int find_flag = 0; //用来嵌信息的
 int EMD_SUM = 0; // 判断目前的EMD SUM
 int aim_bit =0; //EMD待嵌入信息
+
 
 //! \ingroup TLibEncoder
 //! \{
@@ -259,7 +267,19 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
        {
 	   EMD_16_CUTargetMode[jj] =  111 ;// 清零
 	   }
+  for(int jj = 0; jj<4;jj++)
+       {
+	   EMD_32_CUTargetMode[jj] =  111 ;// 清零
+	   }
+  for(int jj = 0; jj<64;jj++)
+       {
+	   EMD_8_CUTargetMode[jj] =  111 ;// 清零
+	   }
+  EMD_64_CUTargetMode[0] = 0;
   CUnum_16=0;// 清零
+  CUnum_8=0;
+  CUnum_32=0;
+  CUnum_64=0;
 
   if (pCtu->getSlice()->getSliceType() != I_SLICE)//
   {
@@ -711,138 +731,11 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 		  CUTargetMode[0] = 255;
 		  for (j = 1; j <= 64; j = j + 21)
 		  {
-			  if (CUDepth[j] == 11) //index是85个PU模式，十位是本来应该depth，个位是本身的level。
-			  {//没有细分----保存当前Mode为TargetMode
-				  //printf("----Fram:%d---CTU:%d--j:%d**32x32***partsize: %d -------------\n",currentPOC, CTUIndex, j, CUPartSize[j]);
-				  CUTargetMode[j] = CUPartSize[j];
-				  //printf(">>>>>>>>>>>>TargetMode %d ==  %d  ----\n", j, CUTargetMode[j]);
-				
-				  if (CUPartSize[j] == 1)
-				  {
-
-					  Capacity++; 
-					  if (rand() % 100 > 50)//%50概率修改
-					  {
-						  Capacity++;
-						  if (rand() % 100 > 50)//%50概率修改为4
-						  {
-							  CUTargetMode[j] = 4;
-						  }
-						  else
-						  {
-							  CUTargetMode[j] = 5;
-						  }
-						  ChangeFlag = 1;
-					  }
-				  }
-				  else if (CUPartSize[j] == 2)
-				  {
-
-					  Capacity++;
-					  if (rand() % 100 > 50)//%50概率修改
-					  {
-						  Capacity++;
-						  if (rand() % 100 > 50)//%50概率修改为6
-						  {
-							  CUTargetMode[j] = 6;
-						  }
-						  else
-						  {
-							  CUTargetMode[j] = 7;
-						  }
-						  ChangeFlag = 1;
-					  }
-				  }
-				  else if (CUPartSize[j] == 4)
-				  {
-					  if (rand() % 100 > 50)//%50概率修改
-					  {
-						  if (rand() % 100 > 50)//%50概率修改为5
-						  {
-							  CUTargetMode[j] = 4;
-						  }
-						  else
-						  {
-							  CUTargetMode[j] = 5;
-						  }
-						  Capacity += 2;
-						  ChangeFlag = 1;
-					  }
-					  else
-					  {
-						  Capacity++;
-						  CUTargetMode[j] = 1;
-						  ChangeFlag = 1;
-					  }
-				  }
-				  else if (CUPartSize[j] == 5)
-				  {
-					  if (rand() % 100 > 50)//%50概率修改
-					  {
-						  Capacity += 2;
-						  if (rand() % 100 > 50)//%50概率修改为4
-						  {
-							  CUTargetMode[j] = 4;
-						  }
-						  else
-						  {
-							  CUTargetMode[j] = 5;
-						  }
-						  ChangeFlag = 1;
-					  }
-					  else
-					  {
-						  Capacity++;
-						  CUTargetMode[j] = 1;
-						  ChangeFlag = 1;
-					  }
-				  }
-				  else if (CUPartSize[j] == 6)
-				  {
-					  if (rand() % 100 > 50)//%50概率修改
-					  {
-						  Capacity += 2;
-						  if (rand() % 100 > 50)//%50概率修改为7
-						  {
-							  CUTargetMode[j] = 6;
-						  }
-						  else
-						  {
-							  CUTargetMode[j] = 7;
-						  }
-						  ChangeFlag = 1;
-					  }
-					  else
-					  {
-						  Capacity++;
-						  CUTargetMode[j] = 2;
-						  ChangeFlag = 1;
-					  }
-				  }
-				  else if (CUPartSize[j] == 7)
-				  {
-					  if (rand() % 100 > 50)//%50概率修改
-					  {
-						  Capacity += 2;
-						  if (rand() % 100 > 50)//%50概率修改为6
-						  {
-							  CUTargetMode[j] = 6;
-						  }
-						  else
-						  {
-							  CUTargetMode[j] = 7;
-						  }
-						  ChangeFlag = 1;
-					  }
-					  else
-					  {
-						  Capacity++;
-						  CUTargetMode[j] = 2;
-						  ChangeFlag = 1;
-					  }
-				  }
-
-
+			  if (CUDepth[j] == 11) //index是85个PU模式，十位是本来应该depth，个位是本身的level。       划分为32X32
+			  {
+				  CUTargetMode[i] = CUPartSize[i]; //将PU6当成PU1来修改
+			      EMD_32_CUTargetMode[CUnum_32]=i; 
+				  CUnum_32++; 
 			  }
 			  else
 			  {//被划分，TargetMode改为255,然后看内部CU
@@ -850,191 +743,22 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 				  for (i = 1+j; i <= 16+j; i = i + 5)//判断2，7，12，17四个CU
 				  {
 					   CUTargetMode[j] = 255;
-
 					  
-					  if (CUDepth[i] == 22)//划分成了16x16
+					  if (CUDepth[i] == 22)   //        划分成了16x16
 					  {
-						    CUTargetMode[i] = CUPartSize[i];
-						  
-	       //>>>>>>>>>>>>>>>>>>>>以下为谢文超算法<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-						/* 屏蔽16x16原本的，lzh*/
-						  if (CUPartSize[i] == 0)
-						  {
-							  CUTargetMode[i] = 0;
-						  }
-						  else if (CUPartSize[i] == 1)
-						  {
-							  Capacity++;
-							  if (rand() % 100 > 50)//%50概率修改
-							  {
-								  Capacity++;
-								  if (rand() % 100 > 50)//%50概率修改为4
-								  {
-									  CUTargetMode[i] = 4;
-								  }
-								  else
-								  {
-									  CUTargetMode[i] = 5;
-								  }
-								  ChangeFlag = 1;
-							  }
-						  }
-						  else if (CUPartSize[i] == 2)
-						  {
-							  Capacity++;
-							  if (rand() % 100 > 50)//%50概率修改
-							  {
-								  Capacity++;
-								  if (rand() % 100 > 50)//%50概率修改为6
-								  {
-									  CUTargetMode[i] = 6;
-								  }
-								  else
-								  {
-									  CUTargetMode[i] = 7;
-								  }
-								  ChangeFlag = 1;
-							  }
-						  }
-						  else if (CUPartSize[i] == 4)
-						  {
-							  if (rand() % 100 > 50)//%50概率修改
-							  {
-								  if (rand() % 100 > 50)//%50概率修改为5
-								  {
-									  CUTargetMode[i] = 4;
-								  }
-								  else
-								  {
-									  CUTargetMode[i] = 5;
-								  }
-								  Capacity += 2;
-								  ChangeFlag = 1;
-							  }
-							  else
-							  {
-								  Capacity++;
-								  CUTargetMode[i] = 1;
-								  ChangeFlag = 1;
-							  }
-						  }
-						  else if (CUPartSize[i] == 5)
-						  {
-							  if (rand() % 100 > 50)//%50概率修改
-							  {
-								  Capacity += 2;
-								  if (rand() % 100 > 50)//%50概率修改为4
-								  {
-									  CUTargetMode[i] = 4;
-								  }
-								  else
-								  {
-									  CUTargetMode[i] = 5;
-								  }
-								  ChangeFlag = 1;
-							  }
-							  else
-							  {
-								  Capacity++;
-								  CUTargetMode[i] = 1;
-								  ChangeFlag = 1;
-							  }
-						  }
-						  else if (CUPartSize[i] == 6)
-						  {
-							  if (rand() % 100 > 50)//%50概率修改
-							  {
-								  Capacity += 2;
-								  if (rand() % 100 > 50)//%50概率修改为7
-								  {
-									  CUTargetMode[i] = 6;
-								  }
-								  else
-								  {
-									  CUTargetMode[i] = 7;
-								  }
-								  ChangeFlag = 1;
-							  }
-							  else
-							  {
-								  Capacity++;
-								  CUTargetMode[i] = 2;
-								  ChangeFlag = 1;
-							  }
-						  }
-						  else if (CUPartSize[i] == 7)
-						  {
-							  if (rand() % 100 > 50)//%50概率修改
-							  {
-								  Capacity += 2;
-								  if (rand() % 100 > 50)//%50概率修改为6
-								  {
-									  CUTargetMode[i] = 6;
-								  }
-								  else
-								  {
-									  CUTargetMode[i] = 7;
-								  }
-								  ChangeFlag = 1;
-							  }
-							  else
-							  {
-								  Capacity++;
-								  CUTargetMode[i] = 2;
-								  ChangeFlag = 1;
-							  }
-						  }
-
-//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>以上为谢文超算法<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-
-
-						  CUTargetMode[i] = CUPartSize[i]; //将PU6当成PU1来修改
-						
-						   EMD_16_CUTargetMode[CUnum_16]=i; 
-						   CUnum_16++; 
-						  
-						 
+						    CUTargetMode[i] = CUPartSize[i]; //将PU6当成PU1来修改
+						    EMD_16_CUTargetMode[CUnum_16]=i; 
+						    CUnum_16++; 						 
 					  }
 					  else//划分成了8x8x4   TargetMode改为255  Question1
 					  {
 						  CUTargetMode[i] = 255;
-						  ChangeFlag = 1;
-
-						  /*>>>>>>>>>>>>lzh<<<<<<<<<<<<<<<<<<*/
-			//			 CUTargetMode[i] =  CUPartSize[i];      
-						  /*>>>>>>>>>>>>lzh<<<<<<<<<<<<<<<<<<*/
-
-						  for (n = 1; n <= 4; n++)
+						 for (n = 1; n <= 4; n++)
 						  {
-							  Capacity += 2;
-							  if (rand() % 100 > 50)
-							  {
-								  if (rand() % 100 > 50)
-								  {
-									  CUTargetMode[i + n] = 0;
-								  }
-								  else
-								  {
-									  CUTargetMode[i + n] = 1;
-								  }
-							  }
-							  else
-							  {
-								  if (rand() % 100 > 50)
-								  {
-									  CUTargetMode[i + n] = 2;
-								  }
-								  else
-								  {
-									  CUTargetMode[i + n] = 3;
-								  }
-							  }
+							EMD_8_CUTargetMode[CUnum_8]=i+n; 
+						    CUnum_8++; 
 						  }
-
-
-
-						  //printf("CU%d Divided into 8x8x4----------------------------------\n",i);
+						 
 					  }
 
 				  }
@@ -1044,91 +768,12 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 	  else//64没有划分
 	  {
 		  CUTargetMode[0] = CUPartSize[0];//Level3
-		  //printf("----Fram:%d---CTU:%d-------64x64-------------\n", currentPOC, CTUIndex);
-		  
-		  if (CUPartSize[0] == 1)
-		  {
-			  Capacity++;
-			  if (rand() % 100 > 50)//50%几率修改
-			  {
-				  Capacity++;
-				  if (rand() % 100 > 50)
-				  {
-					  CUTargetMode[0] = 4;
-				  }
-				  else
-				  {
-					  CUTargetMode[0] = 5;
-				  }
-				  ChangeFlag = 1;
-			  }
-		  }
-		  else if (CUPartSize[0] == 2)
-		  {
-			  Capacity++;
-			  if (rand() % 100 > 50)//50%几率修改
-			  {
-				  Capacity++;
-				  if (rand() % 100 > 50)
-				  {
-					  CUTargetMode[0] = 6;
-				  }
-				  else
-				  {
-					  CUTargetMode[0] = 7;
-				  }
-				  ChangeFlag = 1;
-			  }
-		  }
-		  else if (CUPartSize[0] == 4 || CUPartSize[0] == 5) //question2
-		  {
-			  if (rand() % 100 > 50)//%50概率修改
-			  {
-				  if (rand() % 100 > 50)//%50概率修改为5
-				  {
-					  CUTargetMode[0] = 4;
-				  }
-				  else
-				  {
-					  CUTargetMode[0] = 5;
-				  }
-				  Capacity += 2;
-				  ChangeFlag = 1;
-			  }
-			  else
-			  {
-				  Capacity++;
-				  CUTargetMode[0] = 1;
-				  ChangeFlag = 1;
-			  }
-		  }
-		  else if (CUPartSize[0] == 6 || CUPartSize[0] == 7)
-		  {
-			  if (rand() % 100 > 50)//%50概率修改
-			  {
-				  if (rand() % 100 > 50)//%50概率修改为5
-				  {
-					  CUTargetMode[0] = 6;
-				  }
-				  else
-				  {
-					  CUTargetMode[0] = 7;
-				  }
-				  Capacity += 2;
-				  ChangeFlag = 1;
-			  }
-			  else
-			  {
-				  Capacity++;
-				  CUTargetMode[0] = 2;
-				  ChangeFlag = 1;
-			  }
-		  }
+		 	CUnum_64++; 
 		  //printf(">>>>>>>>>>>>TargetMode 0 ==  %d  ----\n",  CUTargetMode[0]);
 	  }
 
 /*>>>>>>>>>>>>>>>>>>>>>>lzh 16x16 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
-	  if(CUnum_16>=2&&0) //如果一个CTU的16x16个数,屏蔽这个if就屏蔽了lzh的算法
+	  if(CUnum_16>=2 ) //如果一个CTU的16x16个数,屏蔽这个if就屏蔽了lzh的算法 16X16开关
 	  {
 
 		for(ii =0;ii<=CUnum_16;ii = ii+3) //ii指的是16x16  的target
@@ -1413,23 +1058,402 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 /*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 16x16 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
 
 
-	  for (int targetmode_li = 0;targetmode_li<16;targetmode_li++)
-	  {
-		  printf(">>>>>>>>>>>>EMD_16_CUTargetMode %d =  %d  -- \n", targetmode_li, EMD_16_CUTargetMode[targetmode_li]);
-		  		/*>>>>>>>>>>>>>>>>>>>原信息隐藏算法屏蔽5.6号<<<<<<<<<<<<<<<<< */
-    	  		
-	  } 
-	   for (int targetmode_li = 0;targetmode_li<85;targetmode_li++)
-	  {
-		  printf(">>>>>>>>>>>>CUPartSize %d =  %d  --\n", targetmode_li, CUPartSize[targetmode_li]);
-		  printf(">>>>>>>>>>>>CUTargetMode %d =  %d  --\n", targetmode_li, CUTargetMode[targetmode_li]);
-		  printf(">>>>CUDepth[%d]=%d >>>>>>>>\n",targetmode_li,CUDepth[targetmode_li]);
-	  }
+	  //for (int targetmode_li = 0;targetmode_li<16;targetmode_li++)
+	  //{
+		 // printf(">>>>>>>>>>>>EMD_16_CUTargetMode %d =  %d  -- \n", targetmode_li, EMD_16_CUTargetMode[targetmode_li]);
+		 // 		/*>>>>>>>>>>>>>>>>>>>原信息隐藏算法屏蔽5.6号<<<<<<<<<<<<<<<<< */
+   // 	  		
+	  //} 
+	  // for (int targetmode_li = 0;targetmode_li<85;targetmode_li++)
+	  //{
+		 // printf(">>>>>>>>>>>>CUPartSize %d =  %d  --\n", targetmode_li, CUPartSize[targetmode_li]);
+		 // printf(">>>>>>>>>>>>CUTargetMode %d =  %d  --\n", targetmode_li, CUTargetMode[targetmode_li]);
+		 // printf(">>>>CUDepth[%d]=%d >>>>>>>>\n",targetmode_li,CUDepth[targetmode_li]);
+	  //}
 
 	   
   }
+	  /*>>>>>>>>>>>>>>>>>>>>>>以下为 lzh 32X32 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
+	  if(CUnum_32>=2 ) //如果一个CTU的 32X32个数,屏蔽这个if就屏蔽了lzh的算法 32X32开关
+	  {
 
-  if (1 && CUComCount>84 && pCtu->getSlice()->getSliceType() != I_SLICE && ChangeFlag==1)//如果CUPartSize[84]==255说明该CTU不完整，不可用。 currentPOC == 6 &&       加上&&0条件代表不进行修改。
+		for(ii =0;ii<=CUnum_16;ii = ii+3) //ii指的是
+		  {
+			    
+
+			  EMD_SUM = CUTargetMode[EMD_16_CUTargetMode[ii]]+2*CUTargetMode[EMD_16_CUTargetMode[ii+1]]+3*CUTargetMode[EMD_16_CUTargetMode[ii+2]]; //3维 N=3
+			  randnum = rand() % 7;  //2N+1 ，randnum为待嵌入信息
+			  Capacity += 2.8 ;//2.8=log2(7)
+			  ChangeFlag =0;
+			  switch(randnum)
+			  {
+				  case 0:
+					if((EMD_SUM +1) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii]] =( CUTargetMode[EMD_32_CUTargetMode[ii]] +1 )%7;
+						
+					}
+					else if((EMD_SUM +2) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+1]] =( CUTargetMode[EMD_32_CUTargetMode[ii+1]] +1 )%7 ;
+						
+					}
+					else if((EMD_SUM +3) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+2]] = ( CUTargetMode[EMD_32_CUTargetMode[ii+2]] +1 )%7 ;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +1)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii]]--;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +2)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+1]]--;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +3)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+2]]--;
+						
+					}
+					else //待嵌入信息和目标CU划分模式相同，不需修改
+					{
+						
+					}
+					break;
+
+				 case 1:
+				   if((EMD_SUM +1) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii]] =( CUTargetMode[EMD_32_CUTargetMode[ii]] +1 )%7;
+						
+					}
+					else if((EMD_SUM +2) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+1]] =( CUTargetMode[EMD_32_CUTargetMode[ii+1]] +1 )%7 ;
+						
+					}
+					else if((EMD_SUM +3) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+2]] = ( CUTargetMode[EMD_32_CUTargetMode[ii+2]] +1 )%7 ;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +1)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii]]--;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +2)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+1]]--;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +3)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+2]]--;
+						
+					}
+					else //待嵌入信息和目标CU划分模式相同，不需修改
+					{
+						
+					}
+					break;
+				 case 2:
+					if((EMD_SUM +1) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii]] =( CUTargetMode[EMD_32_CUTargetMode[ii]] +1 )%7;
+						
+					}
+					else if((EMD_SUM +2) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+1]] =( CUTargetMode[EMD_32_CUTargetMode[ii+1]] +1 )%7 ;
+						
+					}
+					else if((EMD_SUM +3) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+2]] = ( CUTargetMode[EMD_32_CUTargetMode[ii+2]] +1 )%7 ;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +1)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii]]--;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +2)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+1]]--;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +3)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+2]]--;
+						
+					}
+					else //待嵌入信息和目标CU划分模式相同，不需修改
+					{
+						
+					}
+					break;
+				 case 3:
+					if((EMD_SUM +1) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii]] =( CUTargetMode[EMD_32_CUTargetMode[ii]] +1 )%7;
+						
+					}
+					else if((EMD_SUM +2) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+1]] =( CUTargetMode[EMD_32_CUTargetMode[ii+1]] +1 )%7 ;
+						
+					}
+					else if((EMD_SUM +3) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+2]] = ( CUTargetMode[EMD_32_CUTargetMode[ii+2]] +1 )%7 ;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +1)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii]]--;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +2)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+1]]--;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +3)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+2]]--;
+						
+					}
+					else //待嵌入信息和目标CU划分模式相同，不需修改
+					{
+						
+					}
+					break;
+				 case 4:
+				if((EMD_SUM +1) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii]] =( CUTargetMode[EMD_32_CUTargetMode[ii]] +1 )%7;
+						
+					}
+					else if((EMD_SUM +2) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+1]] =( CUTargetMode[EMD_32_CUTargetMode[ii+1]] +1 )%7 ;
+						
+					}
+					else if((EMD_SUM +3) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+2]] = ( CUTargetMode[EMD_32_CUTargetMode[ii+2]] +1 )%7 ;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +1)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii]]--;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +2)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+1]]--;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +3)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+2]]--;
+						
+					}
+					else //待嵌入信息和目标CU划分模式相同，不需修改
+					{
+						
+					}
+					break;
+				 case 5:
+				if((EMD_SUM +1) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii]] =( CUTargetMode[EMD_32_CUTargetMode[ii]] +1 )%7;
+						
+					}
+					else if((EMD_SUM +2) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+1]] =( CUTargetMode[EMD_32_CUTargetMode[ii+1]] +1 )%7 ;
+						
+					}
+					else if((EMD_SUM +3) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+2]] = ( CUTargetMode[EMD_32_CUTargetMode[ii+2]] +1 )%7 ;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +1)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii]]--;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +2)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+1]]--;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +3)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+2]]--;
+						
+					}
+					else //待嵌入信息和目标CU划分模式相同，不需修改
+					{
+						
+					}
+					break;
+				case 6:
+				if((EMD_SUM +1) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii]] =( CUTargetMode[EMD_32_CUTargetMode[ii]] +1 )%7;
+						
+					}
+					else if((EMD_SUM +2) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+1]] =( CUTargetMode[EMD_32_CUTargetMode[ii+1]] +1 )%7 ;
+						
+					}
+					else if((EMD_SUM +3) % 7 == randnum)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+2]] = ( CUTargetMode[EMD_32_CUTargetMode[ii+2]] +1 )%7 ;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +1)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii]]--;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +2)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+1]]--;
+						
+					}
+					else if(EMD_SUM  % 7 == randnum +3)
+					{
+						CUTargetMode[EMD_32_CUTargetMode[ii+2]]--;
+						
+					}
+					else //待嵌入信息和目标CU划分模式相同，不需修改
+					{
+						
+					}
+					break;	
+			  }  
+			  if(CUTargetMode[EMD_32_CUTargetMode[ii]]<0) //时刻注意负数要取补
+			  {
+						CUTargetMode[EMD_32_CUTargetMode[ii]] = 7 + CUTargetMode[EMD_32_CUTargetMode[ii]];
+			  }
+			 if(CUTargetMode[EMD_16_CUTargetMode[ii+1]]<0) 
+			  {
+						CUTargetMode[EMD_32_CUTargetMode[ii+1]] = 7 + CUTargetMode[EMD_32_CUTargetMode[ii+1]];
+			  }
+		     if(CUTargetMode[EMD_16_CUTargetMode[ii+2]]<0) 
+			  {
+						CUTargetMode[EMD_32_CUTargetMode[ii+2]] = 7 + CUTargetMode[EMD_32_CUTargetMode[ii+2]];
+			  }
+		  }
+	  }
+
+/*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 32x32<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
+
+ /*>>>>>>>>>>>>>>>>>>>>>>以下为lzh 8X8 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
+	  if(CUnum_8>=2 ) //如果一个CTU的8X8个数,屏蔽这个if就屏蔽了lzh的算法 8X8开关
+	  {
+
+		for(ii =0;ii<=CUnum_8;ii = ii+1) //ii指的是8X8  的target
+		  {
+			    
+
+			  CUTargetMode[EMD_16_CUTargetMode[ii]]; //1维 N=1
+			  randnum = rand() % 3;  //2N+1 ，randnum为待嵌入信息
+			  Capacity += 1.6 ;//2.8=log2(7)
+			
+			  switch(randnum)
+			  {
+				  case 0:
+					if( aim_bit = rand() % 2 == 0 )
+					{
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = 0 ;
+					}
+					else 
+					{
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = 1 ;
+					}
+					break;
+
+				 case 1:
+				   CUTargetMode[EMD_16_CUTargetMode[ii]] = 1 ;
+					break;
+				 case 2:
+					CUTargetMode[EMD_16_CUTargetMode[ii]] = 2 ;
+					break;
+				
+		    }
+	  
+        }
+    }
+/*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 8x8 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
+
+ /*>>>>>>>>>>>>>>>>>>>>>>以下为lzh 64X64 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
+	  if(!CUDepth[0]) // 64X64开关
+	  {
+			  CUTargetMode[EMD_64_CUTargetMode[ii]]; //1维 N=1
+			  randnum = rand() % 3;  //2N+1 ，randnum为待嵌入信息
+			  Capacity += 1.6 ;//2.8=log2(7)
+
+			  aim_bit = rand() % 3 ;
+			  switch(randnum)
+			  {
+				  case 0:
+					if( aim_bit == 0 )
+					{
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = 0 ;
+					}
+					else if (aim_bit == 1)
+					{
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = 3 ;
+					}
+					else
+					{
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = 6 ;
+					}
+					break;
+
+				 case 1:
+				   if( aim_bit == 0 )
+					{
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = 1 ;
+					}
+					else if (aim_bit == 1)
+					{
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = 4 ;
+					}
+					else
+					{
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = 7 ;
+					}
+
+					break;
+				 case 2:
+					  if( aim_bit == 0 )
+					  {
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = 2 ;
+					  }
+
+					else
+					{
+						CUTargetMode[EMD_16_CUTargetMode[ii]] = 5 ;
+					}
+					break;
+        }
+    }
+/*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 64x64 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
+
+
+	   ChangeFlag =1; //EMD算法目前所有都改。
+  if (1 && CUComCount>84 && pCtu->getSlice()->getSliceType() != I_SLICE && ChangeFlag==1)//如果CUPartSize[84]==255说明该CTU不完整，不可用。 currentPOC == 6 &&       加上&&0条件代表不进行修改。 修改或者不修改的总开 
   {													//ChangeFlag 表示是否有16x16（？？？）被修改，如果没有，则为0，不需要重新压缩一遍。
 	  //写入目标划分类型
 	  //for (i = 0; i < 85; i++)

@@ -733,17 +733,15 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 		  {
 			  if (CUDepth[j] == 11) //index是85个PU模式，十位是本来应该depth，个位是本身的level。       划分为32X32
 			  {
-				  CUTargetMode[i] = CUPartSize[i]; //将PU6当成PU1来修改
-			      EMD_32_CUTargetMode[CUnum_32]=i; 
+				  CUTargetMode[j] = CUPartSize[j]; //将PU6当成PU1来修改
+			      EMD_32_CUTargetMode[CUnum_32]=j; 
 				  CUnum_32++; 
 			  }
 			  else
 			  {//被划分，TargetMode改为255,然后看内部CU
 				  CUTargetMode[j] = 255;
 				  for (i = 1+j; i <= 16+j; i = i + 5)//判断2，7，12，17四个CU
-				  {
-					   CUTargetMode[j] = 255;
-					  
+				  {					  
 					  if (CUDepth[i] == 22)   //        划分成了16x16
 					  {
 						    CUTargetMode[i] = CUPartSize[i]; //将PU6当成PU1来修改
@@ -768,15 +766,15 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 	  else//64没有划分
 	  {
 		  CUTargetMode[0] = CUPartSize[0];//Level3
-		 	CUnum_64++; 
+		 	CUnum_64=1; 
 		  //printf(">>>>>>>>>>>>TargetMode 0 ==  %d  ----\n",  CUTargetMode[0]);
 	  }
 
 /*>>>>>>>>>>>>>>>>>>>>>>lzh 16x16 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
-	  if(CUnum_16>=2 ) //如果一个CTU的16x16个数,屏蔽这个if就屏蔽了lzh的算法 16X16开关
+	  if(CUnum_16> 2 ) //如果一个CTU的16x16个数,屏蔽这个if就屏蔽了lzh的算法 16X16开关
 	  {
 
-		for(ii =0;ii<=CUnum_16;ii = ii+3) //ii指的是16x16  的target
+		for(ii =0;ii<CUnum_16;ii = ii+3) //ii指的是16x16  的target
 		  {
 			    
 
@@ -1058,26 +1056,13 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 /*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 16x16 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
 
 
-	  //for (int targetmode_li = 0;targetmode_li<16;targetmode_li++)
-	  //{
-		 // printf(">>>>>>>>>>>>EMD_16_CUTargetMode %d =  %d  -- \n", targetmode_li, EMD_16_CUTargetMode[targetmode_li]);
-		 // 		/*>>>>>>>>>>>>>>>>>>>原信息隐藏算法屏蔽5.6号<<<<<<<<<<<<<<<<< */
-   // 	  		
-	  //} 
-	  // for (int targetmode_li = 0;targetmode_li<85;targetmode_li++)
-	  //{
-		 // printf(">>>>>>>>>>>>CUPartSize %d =  %d  --\n", targetmode_li, CUPartSize[targetmode_li]);
-		 // printf(">>>>>>>>>>>>CUTargetMode %d =  %d  --\n", targetmode_li, CUTargetMode[targetmode_li]);
-		 // printf(">>>>CUDepth[%d]=%d >>>>>>>>\n",targetmode_li,CUDepth[targetmode_li]);
-	  //}
-
 	   
  
 	  /*>>>>>>>>>>>>>>>>>>>>>>以下为 lzh 32X32 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
-	  if(CUnum_32>=2 ) //如果一个CTU的 32X32个数,屏蔽这个if就屏蔽了lzh的算法 32X32开关
+	  if(CUnum_32>=3 ) //如果一个CTU的 32X32个数,屏蔽这个if就屏蔽了lzh的算法 32X32开关
 	  {
 
-		for(ii =0;ii<=CUnum_32;ii = ii+3) //ii指的是
+		for(ii =0;ii<CUnum_32;ii = ii+3) //ii指的是
 		  {
 			    
 
@@ -1359,27 +1344,26 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 /*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 32x32<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
 
  /*>>>>>>>>>>>>>>>>>>>>>>以下为lzh 8X8 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
-	  if(CUnum_8>=2 ) //如果一个CTU的8X8个数,屏蔽这个if就屏蔽了lzh的算法 8X8开关
+	  if(CUnum_8>2 ) //如果一个CTU的8X8个数,屏蔽这个if就屏蔽了lzh的算法 8X8开关
 	  {
 
-		for(ii =0;ii<=CUnum_8;ii = ii+1) //ii指的是8X8  的target
+		for(ii =0;ii<CUnum_8;ii++) //ii指的是8X8  的target
 		  {
-			    
 
-			  CUTargetMode[EMD_16_CUTargetMode[ii]]; //1维 N=1
+			 //1维 N=1
 			  randnum = rand() % 3;  //2N+1 ，randnum为待嵌入信息
 			  Capacity += 1.6 ;//2.8=log2(7)
-			
+			  aim_bit = rand() % 2;
 			  switch(randnum)
 			  {
 				  case 0:
-					if( aim_bit = rand() % 2 == 0 )
+					if( aim_bit == 0 )
 					{
 						CUTargetMode[EMD_8_CUTargetMode[ii]] = 0 ;
 					}
 					else 
 					{
-						CUTargetMode[EMD_8_CUTargetMode[ii]] = 1 ;
+						CUTargetMode[EMD_8_CUTargetMode[ii]] = 3 ;
 					}
 					break;
 
@@ -1397,7 +1381,7 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 /*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 8x8 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
 
  /*>>>>>>>>>>>>>>>>>>>>>>以下为lzh 64X64 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
-	  if(CUnum_64 && 0) // 64X64开关
+	  if(CUnum_64 ) // 64X64开关
 	  {
 		      //CUTargetMode[EMD_64_CUTargetMode[ii]]; //1维 N=1
 			  randnum = rand() % 3;  //2N+1 ，randnum为待嵌入信息
@@ -1451,6 +1435,37 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
     }
 /*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 64x64 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
 
+	  
+	  //for (int targetmode_li = 0;targetmode_li<4;targetmode_li++)
+	  //{
+		 // printf(">>>>>>>>>>>>EMD_32_CUTargetMode %d =  %d  -- \n", targetmode_li, EMD_32_CUTargetMode[targetmode_li]);
+		 // 		/*>>>>>>>>>>>>>>>>>>>原信息隐藏算法屏蔽5.6号<<<<<<<<<<<<<<<<< */
+   // 	  		
+	  //} 
+	  //for (int targetmode_li = 0;targetmode_li<1;targetmode_li++)
+	  //{
+		 // printf(">>>>>>>>>>>>EMD_64_CUTargetMode %d =  %d  -- \n", targetmode_li, EMD_64_CUTargetMode[targetmode_li]);
+		 // 		/*>>>>>>>>>>>>>>>>>>>原信息隐藏算法屏蔽5.6号<<<<<<<<<<<<<<<<< */
+   // 	  		
+	  //} 
+	  //for (int targetmode_li = 0;targetmode_li<16;targetmode_li++)
+	  //{
+		 // printf(">>>>>>>>>>>>EMD_16_CUTargetMode %d =  %d  -- \n", targetmode_li, EMD_16_CUTargetMode[targetmode_li]);
+		 // 		/*>>>>>>>>>>>>>>>>>>>原信息隐藏算法屏蔽5.6号<<<<<<<<<<<<<<<<< */
+   // 	  		
+	  //} 
+	  //for (int targetmode_li = 0;targetmode_li<64;targetmode_li++)
+	  //{
+		 // printf(">>>>>>>>>>>>EMD_8_CUTargetMode %d =  %d  -- \n", targetmode_li, EMD_8_CUTargetMode[targetmode_li]);
+		 // 		/*>>>>>>>>>>>>>>>>>>>原信息隐藏算法屏蔽5.6号<<<<<<<<<<<<<<<<< */
+   // 	  		
+	  //} 
+	  // for (int targetmode_li = 0;targetmode_li<85;targetmode_li++)
+	  //{
+		 // printf(">>>>>>>>>>>>CUPartSize %d =  %d  --\n", targetmode_li, CUPartSize[targetmode_li]);
+		 // printf(">>>>>>>>>>>>CUTargetMode %d =  %d  --\n", targetmode_li, CUTargetMode[targetmode_li]);
+		 // printf(">>>>CUDepth[%d]=%d >>>>>>>>\n",targetmode_li,CUDepth[targetmode_li]);
+	  //}
 
 	   ChangeFlag =1; //EMD算法目前所有都改。
   if (1 && CUComCount>84 && pCtu->getSlice()->getSliceType() != I_SLICE && ChangeFlag==1)//如果CUPartSize[84]==255说明该CTU不完整，不可用。 currentPOC == 6 &&       加上&&0条件代表不进行修改。 修改或者不修改的总开 

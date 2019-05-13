@@ -1054,7 +1054,7 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 			  }
 		  }
 	  }
-
+ }
 /*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 16x16 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
 
 
@@ -1072,19 +1072,19 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 	  //}
 
 	   
-  }
+ 
 	  /*>>>>>>>>>>>>>>>>>>>>>>以下为 lzh 32X32 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
 	  if(CUnum_32>=2 ) //如果一个CTU的 32X32个数,屏蔽这个if就屏蔽了lzh的算法 32X32开关
 	  {
 
-		for(ii =0;ii<=CUnum_16;ii = ii+3) //ii指的是
+		for(ii =0;ii<=CUnum_32;ii = ii+3) //ii指的是
 		  {
 			    
 
-			  EMD_SUM = CUTargetMode[EMD_16_CUTargetMode[ii]]+2*CUTargetMode[EMD_16_CUTargetMode[ii+1]]+3*CUTargetMode[EMD_16_CUTargetMode[ii+2]]; //3维 N=3
+			  EMD_SUM = CUTargetMode[EMD_32_CUTargetMode[ii]]+2*CUTargetMode[EMD_32_CUTargetMode[ii+1]]+3*CUTargetMode[EMD_32_CUTargetMode[ii+2]]; //3维 N=3
 			  randnum = rand() % 7;  //2N+1 ，randnum为待嵌入信息
 			  Capacity += 2.8 ;//2.8=log2(7)
-			  ChangeFlag =0;
+			  
 			  switch(randnum)
 			  {
 				  case 0:
@@ -1345,11 +1345,11 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 			  {
 						CUTargetMode[EMD_32_CUTargetMode[ii]] = 7 + CUTargetMode[EMD_32_CUTargetMode[ii]];
 			  }
-			 if(CUTargetMode[EMD_16_CUTargetMode[ii+1]]<0) 
+			 if(CUTargetMode[EMD_32_CUTargetMode[ii+1]]<0) 
 			  {
 						CUTargetMode[EMD_32_CUTargetMode[ii+1]] = 7 + CUTargetMode[EMD_32_CUTargetMode[ii+1]];
 			  }
-		     if(CUTargetMode[EMD_16_CUTargetMode[ii+2]]<0) 
+		     if(CUTargetMode[EMD_32_CUTargetMode[ii+2]]<0) 
 			  {
 						CUTargetMode[EMD_32_CUTargetMode[ii+2]] = 7 + CUTargetMode[EMD_32_CUTargetMode[ii+2]];
 			  }
@@ -1375,19 +1375,19 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 				  case 0:
 					if( aim_bit = rand() % 2 == 0 )
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii]] = 0 ;
+						CUTargetMode[EMD_8_CUTargetMode[ii]] = 0 ;
 					}
 					else 
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii]] = 1 ;
+						CUTargetMode[EMD_8_CUTargetMode[ii]] = 1 ;
 					}
 					break;
 
 				 case 1:
-				   CUTargetMode[EMD_16_CUTargetMode[ii]] = 1 ;
+				   CUTargetMode[EMD_8_CUTargetMode[ii]] = 1 ;
 					break;
 				 case 2:
-					CUTargetMode[EMD_16_CUTargetMode[ii]] = 2 ;
+					CUTargetMode[EMD_8_CUTargetMode[ii]] = 2 ;
 					break;
 				
 		    }
@@ -1397,54 +1397,54 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 /*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 8x8 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
 
  /*>>>>>>>>>>>>>>>>>>>>>>以下为lzh 64X64 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
-	  if(!CUDepth[0]) // 64X64开关
+	  if(CUnum_64 && 0) // 64X64开关
 	  {
-			  CUTargetMode[EMD_64_CUTargetMode[ii]]; //1维 N=1
+		      //CUTargetMode[EMD_64_CUTargetMode[ii]]; //1维 N=1
 			  randnum = rand() % 3;  //2N+1 ，randnum为待嵌入信息
 			  Capacity += 1.6 ;//2.8=log2(7)
-
 			  aim_bit = rand() % 3 ;
+
 			  switch(randnum)
 			  {
 				  case 0:
 					if( aim_bit == 0 )
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii]] = 0 ;
+						CUTargetMode[0] = 0 ;
 					}
 					else if (aim_bit == 1)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii]] = 3 ;
+						CUTargetMode[0] = 3 ;
 					}
 					else
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii]] = 6 ;
+						CUTargetMode[0] = 6 ;
 					}
 					break;
 
 				 case 1:
 				   if( aim_bit == 0 )
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii]] = 1 ;
+						CUTargetMode[0] = 1 ;
 					}
 					else if (aim_bit == 1)
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii]] = 4 ;
+						CUTargetMode[0] = 4 ;
 					}
 					else
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii]] = 7 ;
+						CUTargetMode[0] = 7 ;
 					}
 
 					break;
 				 case 2:
 					  if( aim_bit == 0 )
 					  {
-						CUTargetMode[EMD_16_CUTargetMode[ii]] = 2 ;
+						CUTargetMode[0] = 2 ;
 					  }
 
 					else
 					{
-						CUTargetMode[EMD_16_CUTargetMode[ii]] = 5 ;
+						CUTargetMode[0] = 5 ;
 					}
 					break;
         }

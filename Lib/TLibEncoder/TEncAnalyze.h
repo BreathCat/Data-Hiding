@@ -53,6 +53,9 @@
 #endif
 
 extern double  PSNRValue;
+extern double PSNRValue_Y ;
+extern double PSNRValue_U ;
+extern double PSNRValue_V ;
 extern double  BitRateValue;
 extern int RecordFlag;
 
@@ -325,7 +328,10 @@ public:
 			if (RecordFlag == 0)
 			{
 				BitRateValue = getBits() * dScale;
-				PSNRValue=getPsnr(COMPONENT_Y) / (Double)getNumPic();
+				PSNRValue= PSNRyuv ;
+			    PSNRValue_Y = getPsnr(COMPONENT_Y) / (Double)getNumPic();
+				PSNRValue_U = getPsnr(COMPONENT_Cb) / (Double)getNumPic() ;
+				PSNRValue_V =  getPsnr(COMPONENT_Cr) / (Double)getNumPic();
 				RecordFlag=1;
 			}
 

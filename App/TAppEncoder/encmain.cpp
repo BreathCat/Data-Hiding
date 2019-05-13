@@ -59,6 +59,9 @@ int CUTargetMode[85] = { 255 };//当前CU的目标划分模式
 
 double Capacity = 0;//统计嵌入容量
 double PSNRValue = 0;//记录PSNR结果
+double PSNRValue_Y = 0;//记录PSNR结果
+double PSNRValue_U = 0;//记录PSNR结果
+double PSNRValue_V = 0;//记录PSNR结果
 double BitRateValue = 0;//记录比特率结果
 int RecordFlag = 0;
 
@@ -157,6 +160,18 @@ int main(int argc, char* argv[])
 	//  temp = to_string(static_cast<long long>(PSNRValue));
 	  EncodeDataFile << "PSNR    " + temp + "\n";
 
+	  sprintf(buffer,"%.4f",PSNRValue_Y);
+	  temp = buffer;
+	  EncodeDataFile << "PSNR_Y    " + temp + "\n";
+	  
+	  sprintf(buffer,"%.4f",PSNRValue_U);
+	  temp = buffer;
+	  EncodeDataFile << "PSNR_U    " + temp + "\n";
+
+	  sprintf(buffer,"%.4f",PSNRValue_V);
+	  temp = buffer;
+	  EncodeDataFile << "PSNR_V  " + temp + "\n";
+
 	  temp = to_string(static_cast<long long>(BitRateValue));
 	  EncodeDataFile << "BITR    " + temp + "\n";
 
@@ -173,7 +188,7 @@ int main(int argc, char* argv[])
 
 
 
-  getchar();
+ // getchar(); //批量处理的时候这里得屏蔽
   return 0;
 }
 

@@ -825,8 +825,8 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 /*>>>>>>>>>>>>>>>>>>>>>>lzh 16x16 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
 	  if(CUnum_16> 2) //如果一个CTU的16x16个数,屏蔽这个if就屏蔽了lzh的算法 16X16开关
 	  {
-
-		for(ii =0;ii<CUnum_16;ii = ii+3) //ii指的是16x16  的target
+		  
+		for(ii =0;ii+2<CUnum_16;ii = ii+3) //ii指的是16x16  的target
 		  {
 			    
 
@@ -1112,9 +1112,10 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
  
 	  /*>>>>>>>>>>>>>>>>>>>>>>以下为 lzh 32X32 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
 	  if(CUnum_32>=3 && 0) //如果一个CTU的 32X32个数,屏蔽这个if就屏蔽了lzh的算法 32X32开关
+   
 	  {
 		  ChangeFlag =1;
-		for(ii =0;ii<CUnum_32;ii = ii+3) //ii指的是
+		for(ii =0;ii+2<CUnum_32;ii = ii+3) //ii指的是
 		  {
 			    
 
@@ -1437,7 +1438,8 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 /*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 8x8 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
 
  /*>>>>>>>>>>>>>>>>>>>>>>以下为lzh 64X64 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
-	  if(CUnum_64 && 0 ) // 64X64开关
+	 if(CUnum_64 && 0 ) // 64X64开关
+	
 	  {
 		      //CUTargetMode[EMD_64_CUTargetMode[ii]]; //1维 N=1
 			  randnum = rand() % 3;  //2N+1 ，randnum为待嵌入信息

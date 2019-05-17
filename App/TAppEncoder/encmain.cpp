@@ -64,7 +64,10 @@ double PSNRValue_U = 0;//记录PSNR结果
 double PSNRValue_V = 0;//记录PSNR结果
 double BitRateValue = 0;//记录比特率结果
 int RecordFlag = 0;
-
+int TOTAL_8 = 0; //8x8CUnumber 总的
+int TOTAL_16 = 0;
+int TOTAL_32 = 0;
+int TOTAL_64 = 0;
 extern string binname;
 
 //By lzh自定义变量
@@ -76,6 +79,9 @@ int EMD_64_CUTargetMode[1] = { 111 };
 int CUnum_64 = 0;
 int EMD_8_CUTargetMode[64] = { 111 };  
 int CUnum_8 = 0;
+int PUcategeory[4][8];//统计类型总数  0-64*64 1-32*32 2-16*16 3-8*8   0-2N*2N 1-2N*N 2-N*2N 3-N*N 4-2NxnU 5-2NxnD 6-nLx2N 7-nRx2N 
+int FPUcategeory[4][8];//统计第一个P帧的类型
+
 // ====================================================================================================================
 // Main function
 // ====================================================================================================================
@@ -83,7 +89,7 @@ int CUnum_8 = 0;
 int main(int argc, char* argv[])
 {
   TAppEncTop  cTAppEncTop;
-
+  //freopen("data_parksence.txt","w",stdout);
   // print information
   fprintf( stdout, "\n" );
   fprintf( stdout, "HM software: Encoder Version [%s] (including RExt)", NV_VERSION );
@@ -91,7 +97,7 @@ int main(int argc, char* argv[])
   fprintf( stdout, NVM_COMPILEDBY );
   fprintf( stdout, NVM_BITS );
   fprintf( stdout, "\n\n" );
-
+    CurrentPOC = 0;//标记当前帧号
   // create application encoder class
   cTAppEncTop.create();
 
@@ -144,49 +150,68 @@ int main(int argc, char* argv[])
   //}
 
   printf("The capacity of this sequence is : %.2f bits.\n", Capacity);
-
-
-
-  ofstream EncodeDataFile(binname+"Origin.txt");
-
-
-  if (EncodeDataFile.is_open())
-  {
-	//  string temp = "";
-	  
-	  char buffer [20];
-	  sprintf(buffer,"%.4f",PSNRValue);
-	  string temp = buffer;
-	//  temp = to_string(static_cast<long long>(PSNRValue));
-	  EncodeDataFile << "PSNR    " + temp + "\n";
-
-	  sprintf(buffer,"%.4f",PSNRValue_Y);
-	  temp = buffer;
-	  EncodeDataFile << "PSNR_Y    " + temp + "\n";
-	  
-	  sprintf(buffer,"%.4f",PSNRValue_U);
-	  temp = buffer;
-	  EncodeDataFile << "PSNR_U    " + temp + "\n";
-
-	  sprintf(buffer,"%.4f",PSNRValue_V);
-	  temp = buffer;
-	  EncodeDataFile << "PSNR_V  " + temp + "\n";
-
-	  temp = to_string(static_cast<long long>(BitRateValue));
-	  EncodeDataFile << "BITR    " + temp + "\n";
-
-	  temp = to_string(static_cast<long long>(Capacity));
-	  EncodeDataFile << "CAPY    " + temp + "\n";
-
-	  EncodeDataFile.close();
-	  
+  printf("The quantity of 8X8 16X16 32X32 64X64 CUs in this sequence is : %d %d %d %d\n", TOTAL_8,TOTAL_16,TOTAL_32,TOTAL_64);
+  
+ // printf("--------------------------------------------judgeMode:%d------------------------------------------\n",judgeMode);
+  printf("	2N*2N	2N*N	N*2N	N*N	2NxnU	2NxnD	nLx2N	nRx2N\n");
+  for(int i=0;i<4;i++){
+	  printf("%d*%d",(64/((int)(pow(2,(float)i)))),(64/((int)(pow(2,(float)i)))));
+	  for(int j=0;j<8;j++){
+		  printf("	%d", PUcategeory[i][j]);
+	  }
+	  printf("\n");
   }
-  else
-  {
-	  printf("File Open Filed\n");
+  printf("---------------------------第一个P帧------------------------------------\n");
+  for(int i=0;i<4;i++){
+	  printf("%d*%d",(64/((int)(pow(2,(float)i)))),(64/((int)(pow(2,(float)i)))));
+	  for(int j=0;j<8;j++){
+		  printf("	%d", FPUcategeory[i][j]);
+	  }
+	  printf("\n");
   }
 
+  //以下为原谢文超输入文件方式
 
+ // ofstream EncodeDataFile(binname+"Origin.txt");
+
+
+ // if (EncodeDataFile.is_open())
+ // {
+	////  string temp = "";
+	//  
+	//  char buffer [20];
+	//  sprintf(buffer,"%.4f",PSNRValue);
+	//  string temp = buffer;
+	////  temp = to_string(static_cast<long long>(PSNRValue));
+	//  EncodeDataFile << "PSNR    " + temp + "\n";
+
+	//  sprintf(buffer,"%.4f",PSNRValue_Y);
+	//  temp = buffer;
+	//  EncodeDataFile << "PSNR_Y    " + temp + "\n";
+	//  
+	//  sprintf(buffer,"%.4f",PSNRValue_U);
+	//  temp = buffer;
+	//  EncodeDataFile << "PSNR_U    " + temp + "\n";
+
+	//  sprintf(buffer,"%.4f",PSNRValue_V);
+	//  temp = buffer;
+	//  EncodeDataFile << "PSNR_V  " + temp + "\n";
+
+	//  temp = to_string(static_cast<long long>(BitRateValue));
+	//  EncodeDataFile << "BITR    " + temp + "\n";
+
+	//  temp = to_string(static_cast<long long>(Capacity));
+	//  EncodeDataFile << "CAPY    " + temp + "\n";
+
+	//  EncodeDataFile.close();
+	//  
+ // }
+ // else
+ // {
+	//  printf("File Open Filed\n");
+ // }
+
+    //以上为原谢文超输入文件方式
 
  // getchar(); //批量处理的时候这里得屏蔽
   return 0;

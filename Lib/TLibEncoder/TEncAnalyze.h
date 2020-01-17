@@ -52,13 +52,6 @@
 #include "TAppEncHelper360/TExt360EncAnalyze.h"
 #endif
 
-extern double  PSNRValue;
-extern double PSNRValue_Y ;
-extern double PSNRValue_U ;
-extern double PSNRValue_V ;
-extern double  BitRateValue;
-extern int RecordFlag;
-
 //! \ingroup TLibEncoder
 //! \{
 
@@ -325,15 +318,6 @@ public:
                    getPsnr(COMPONENT_Cb) / (Double)getNumPic(),
                    getPsnr(COMPONENT_Cr) / (Double)getNumPic(),
                    PSNRyuv );
-			if (RecordFlag == 0)
-			{
-				BitRateValue = getBits() * dScale;
-				PSNRValue= PSNRyuv ;
-			    PSNRValue_Y = getPsnr(COMPONENT_Y) / (Double)getNumPic();
-				PSNRValue_U = getPsnr(COMPONENT_Cb) / (Double)getNumPic() ;
-				PSNRValue_V =  getPsnr(COMPONENT_Cr) / (Double)getNumPic();
-				RecordFlag=1;
-			}
 
 #if EXTENSION_360_VIDEO
             m_ext360.printPSNRs(getNumPic());

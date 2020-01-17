@@ -40,15 +40,6 @@
 #include <time.h>
 #include "TAppDecTop.h"
 
-//自定义全局变量
-
-int CurrentPOC = 0;
-
-int InterPU[500] = { 0 };
-int IntraPU[500] = { 0 }; 
-int SkipPU[500] = { 0 };
-
-extern string binname;
 //! \ingroup TAppDecoder
 //! \{
 
@@ -80,10 +71,6 @@ int main(int argc, char* argv[])
     return returnCode;
   }
 
-  //ofstream IntraPUfile("E:\\PUData\\Intra\\"+binname+".txt");
-  //ofstream InterPUfile("E:\\PUData\\Inter\\" + binname + ".txt");
-  //ofstream SkipPUfile("E:\\PUData\\Skip\\" + binname + ".txt");
-
   // starting time
   Double dResult;
   clock_t lBefore = clock();
@@ -103,41 +90,6 @@ int main(int argc, char* argv[])
 
   // destroy application decoder class
   cTAppDecTop.destroy();
-
-  //for (int i = 0; i <= CurrentPOC; i++)
-  //{
-	 // printf("POC%3d: IntraPU=%d\tInterPU=%d\tSkipPU=%d\n", i, IntraPU[i], InterPU[i], SkipPU[i]);
-  //}
-  //
-
-  //string temp = "";
-
-  //if (IntraPUfile.is_open() && InterPUfile.is_open() && SkipPUfile.is_open())
-  //{
-	 // for (int i = 0; i <= CurrentPOC; i++)
-	 // {
-		//  temp = to_string(IntraPU[i]);
-		//  IntraPUfile << temp + "\n";
-
-		//  temp = to_string(InterPU[i] - SkipPU[i]);
-		//  InterPUfile << temp + "\n";
-
-		//  temp = to_string(SkipPU[i]);
-		//  SkipPUfile << temp + "\n";
-	 // }
-
-	 // //testfile << "over";
-
-	 // IntraPUfile.close();
-	 // InterPUfile.close();
-	 // SkipPUfile.close();
-  //}
-  //else
-  //{
-	 // printf("File Open Filed\n");
-  //}
-
-  getchar();
 
   return returnCode;
 }

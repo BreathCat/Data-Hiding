@@ -875,8 +875,8 @@ Void TEncSlice::compressSlice( TComPic* pcPic, const Bool bCompressEntireSlice, 
 #endif
     }
 
-    // run CTU trial encoder   修改2  配合声明时增加的int参数，调用类传递出当前的POC
-    m_pcCuEncoder->compressCtu( pCtu ,pcPic->getSlice(0)->getPOC());
+    // run CTU trial encoder
+    m_pcCuEncoder->compressCtu( pCtu );
 
 
     // All CTU decisions have now been made. Restore entropy coder to an initial stage, ready to make a true encode,

@@ -117,7 +117,7 @@ public:
   Void  destroy             ();
 
   /// CTU analysis function
-  Void  compressCtu         ( TComDataCU*  pCtu , Int currentPOC);		//修改1  加入了第二个参数，用于传输当前帧的编号
+  Void  compressCtu         ( TComDataCU*  pCtu );
 
   /// CTU encoding function
   Void  encodeCtu           ( TComDataCU*  pCtu );

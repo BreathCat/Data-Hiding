@@ -39,14 +39,6 @@
 #include "TLibCommon/TComTU.h"
 #include "TLibCommon/TComPrediction.h"
 
-
-extern int CurrentPOC;
-
-extern int InterPU[100];
-extern int IntraPU[100];
-extern int SkipPU[100];
-
-
 //! \ingroup TLibDecoder
 //! \{
 
@@ -278,7 +270,6 @@ Void TDecCu::xDecodeCU( TComDataCU*const pcCU, const UInt uiAbsPartIdx, const UI
 
   if( pcCU->isSkipped(uiAbsPartIdx) )
   {
-	  SkipPU[CurrentPOC]++;//skip mod
     m_ppcCU[uiDepth]->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_0 );
     m_ppcCU[uiDepth]->copyInterPredInfoFrom( pcCU, uiAbsPartIdx, REF_PIC_LIST_1 );
     TComMvField cMvFieldNeighbours[MRG_MAX_NUM_CANDS << 1]; // double length for mv of both lists
@@ -395,19 +386,9 @@ Void TDecCu::xDecompressCU( TComDataCU* pCtu, UInt uiAbsPartIdx,  UInt uiDepth )
   {
     case MODE_INTER:
       xReconInter( m_ppcCU[uiDepth], uiDepth );
-	  InterPU[CurrentPOC]++;
-	  //if (CurrentPOC == 2)
-	  //{
-		 // InterPU[0]++;
-	  //}
       break;
     case MODE_INTRA:
       xReconIntraQT( m_ppcCU[uiDepth], uiDepth );
-	  IntraPU[CurrentPOC]++;
-	  //if (CurrentPOC == 2)
-	  //{
-		 // IntraPU[0]++;
-	  //}
       break;
     default:
       assert(0);
@@ -461,23 +442,10 @@ Void TDecCu::xReconInter( TComDataCU* pcCU, UInt uiDepth )
   if  ( pcCU->getQtRootCbf( 0) )
   {
     m_ppcYuvReco[uiDepth]->addClip( m_ppcYuvReco[uiDepth], m_ppcYuvResi[uiDepth], 0, pcCU->getWidth( 0 ), pcCU->getSlice()->getSPS()->getBitDepths() );
-	//if (CurrentPOC == 2)
-	//{
-	//	InterPU[0]++;
-	//}
-	//else
-	//{
-	//	InterPU[1]++;
-	//}
   }
   else
   {
     m_ppcYuvReco[uiDepth]->copyPartToPartYuv( m_ppcYuvReco[uiDepth],0, pcCU->getWidth( 0 ),pcCU->getHeight( 0 ));
-	//if (CurrentPOC == 2)
-	//{
-	//	SkipPU[0]++;
-	//}
-
   }
 #if DEBUG_STRING
   if (DebugOptionList::DebugString_Reco.getInt()&debugPredModeMask)

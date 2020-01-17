@@ -45,13 +45,12 @@
 #define strdup _strdup
 #endif
 
-
 using namespace std;
 namespace po = df::program_options_lite;
 
 //! \ingroup TAppDecoder
 //! \{
-string binname="";
+
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
@@ -125,14 +124,11 @@ Bool TAppDecCfg::parseCfg( Int argc, TChar* argv[] )
     return false;
   }
 
-  binname = m_bitstreamFileName;
-
   if (m_bitstreamFileName.empty())
   {
     fprintf(stderr, "No input file specified, aborting\n");
     return false;
   }
-  
 
   if ( !cfg_TargetDecLayerIdSetFile.empty() )
   {

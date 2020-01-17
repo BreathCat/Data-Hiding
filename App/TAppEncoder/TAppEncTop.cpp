@@ -52,8 +52,6 @@
 
 using namespace std;
 
-string binname="";
-
 //! \ingroup TAppEncoder
 //! \{
 
@@ -476,9 +474,6 @@ Void TAppEncTop::xInitLib(Bool isFieldCoding)
 Void TAppEncTop::encode()
 {
   fstream bitstreamFile(m_bitstreamFileName.c_str(), fstream::binary | fstream::out);
-
-  binname = m_bitstreamFileName.c_str();
-
   if (!bitstreamFile)
   {
     fprintf(stderr, "\nfailed to open bitstream file `%s' for writing\n", m_bitstreamFileName.c_str());

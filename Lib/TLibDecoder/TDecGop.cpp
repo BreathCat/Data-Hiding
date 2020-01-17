@@ -45,12 +45,6 @@
 
 #include <time.h>
 
-//引用自定义全局变量
-
-extern int CurrentPOC;
-
-
-
 //! \ingroup TLibDecoder
 //! \{
 static Void calcAndPrintHashStatus(TComPicYuv& pic, const SEIDecodedPictureHash* pictureHashSEI, const BitDepths &bitDepths, UInt &numChecksumErrors);
@@ -108,13 +102,7 @@ Void TDecGop::init( TDecEntropy*            pcEntropyDecoder,
 
 Void TDecGop::decompressSlice(TComInputBitstream* pcBitstream, TComPic* pcPic)
 {
-
-	
-
   TComSlice*  pcSlice = pcPic->getSlice(pcPic->getCurrSliceIdx());
-
-  CurrentPOC = (int)(pcSlice->getPOC());
-
   // Table of extracted substreams.
   // These must be deallocated AND their internal fifos, too.
   TComInputBitstream **ppcSubstreams = NULL;
@@ -132,7 +120,6 @@ Void TDecGop::decompressSlice(TComInputBitstream* pcBitstream, TComPic* pcPic)
   {
     ppcSubstreams[ui] = pcBitstream->extractSubstream(ui+1 < uiNumSubstreams ? (pcSlice->getSubstreamSize(ui)<<3) : pcBitstream->getNumBitsLeft());
   }
-  //printf("--------POC%d:----getNumBitsLeft=%d\n", CurrentPOC, pcBitstream->getNumBitsLeft());
 
   m_pcSliceDecoder->decompressSlice( ppcSubstreams, pcPic, m_pcSbacDecoder);
   // deallocate all created substreams, including internal buffers.

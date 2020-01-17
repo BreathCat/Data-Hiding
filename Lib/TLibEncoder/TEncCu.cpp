@@ -48,12 +48,22 @@ using namespace std;
 //自定义变量引用
 
 extern int CTUIndex;
+extern int CurrentPOC;
 extern int CUComCount;
 extern int CUDepth[85];
 extern int CUPartSize[85];
 extern int CUResetPart;
 extern int CUTargetMode[85];
-extern double Capacity;//统计嵌入容量
+extern double Capacity;//统计嵌入容量   ---emd把Capacity的类型改成了double
+extern int isorg;
+extern int PUcategeory[4][8];//统计8*8的类型总数 2N*2N N*N  N*2N  2N*N
+extern int FPUcategeory[4][8];//统计第一个P帧8*8的类型
+extern int judgeMode;
+
+int ChangeFlag = 0;
+
+
+//by lzh
 extern int EMD_16_CUTargetMode[16];
 extern int CUnum_16 ;
 extern int EMD_32_CUTargetMode[4];  
@@ -66,14 +76,15 @@ extern int TOTAL_8;
 extern int TOTAL_16;
 extern int TOTAL_32;
 extern int TOTAL_64;
-
-int ChangeFlag = 0; //
 int find_flag = 0; //用来嵌信息的
 int EMD_SUM = 0; // 判断目前的EMD SUM
 int aim_bit =0; //EMD待嵌入信息
-extern int PUcategeory[4][8];//统计8*8的类型总数 2N*2N N*N  N*2N  2N*N
-extern int FPUcategeory[4][8];//统计第一个P帧8*8的类型
+
 extern int CurrentPOC;
+
+
+
+
 //! \ingroup TLibEncoder
 //! \{
 
@@ -247,10 +258,10 @@ Void TEncCu::init( TEncTop* pcEncTop )
   m_pcRateCtrl         = pcEncTop->getRateCtrl();
   m_lumaQPOffset       = 0;
   initLumaDeltaQpLUT();
-  
-
 }
-void countC(int sizes[85])//--------------------
+
+
+void countC(int sizes[85])//------------------------------yyyyyyy
 {
 	  if (CUDepth[0] != 0)//被划分 CUTargetMode[0] = 255;
 	  {
@@ -290,6 +301,7 @@ void countC(int sizes[85])//--------------------
 	  }
 
 }
+
 // ====================================================================================================================
 // Public member functions
 // ====================================================================================================================
@@ -297,13 +309,13 @@ void countC(int sizes[85])//--------------------
 /** 
  \param  pCtu pointer of CU data class
  */
-Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
+Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yyyyyyy
 {
   // initialize CU data
   m_ppcBestCU[0]->initCtu( pCtu->getPic(), pCtu->getCtuRsAddr() );
   m_ppcTempCU[0]->initCtu( pCtu->getPic(), pCtu->getCtuRsAddr() );
-    CurrentPOC = pCtu->getSlice()->getPOC();
-  //累计CTUIndex
+
+    //累计CTUIndex   ---by emd
   int i = 0;
   int j = 0;
   int n = 0;
@@ -327,452 +339,735 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
   CUnum_32=0;
   CUnum_64=0;
 
-  if (pCtu->getSlice()->getSliceType() != I_SLICE)//
-  {
-	  CTUIndex = pCtu->getCtuRsAddr()+1;
-	  CUComCount = 0;
-	  //printf("---------------Fram %2d,CTUIndex=%d,CtuRsAddr=%d\n", currentPOC, CTUIndex, pCtu->getCtuRsAddr());
 
+  //初始化
+  if (pCtu->getSlice()->getSliceType() != I_SLICE)
+  {
+	  CUComCount = 0;
+	//  CTUIndex=pCtu->getCtuRsAddr()+1;
+	   CurrentPOC = pCtu->getSlice()->getPOC();
+	//  printf("---------------CTUIndex=%d",pCtu->getSlice()->getPOC());
+	//  printf("---------------Fram %2d,CTUIndex=%d,CtuRsAddr=%d\n", currentPOC, CTUIndex, pCtu->getCtuRsAddr());
 	  //初始化存储的数组
-	  for (i = 0; i < 85; i++)
+	  for (int i = 0; i < 85; i++)
 	  {
 		  CUPartSize[i] = 0;
 		  CUDepth[i] = 3;
 		  CUTargetMode[i] = 1;//默认都为1+++7
 	  }
-  }
-  else
-  {
-	  CTUIndex = 0;
-  }
+	}
 
+  //第一次压缩，标志位为0
+  CUResetPart = 0;
+  ChangeFlag = 0;
   // analysis of CU
   DEBUG_STRING_NEW(sDebug)
 
-	  CUResetPart = 0;//第一次压缩，标志位为0
 
-  ChangeFlag = 0;
+	  	  ///////// test zzz begin  ///////
+	  /*printf("CUPartSize:\n");
+	  for (int i=0;i<85;i++)
+	  {
 
-  xCompressCU( m_ppcBestCU[0], m_ppcTempCU[0], 0 DEBUG_STRING_PASS_INTO(sDebug));
+		  if((i+1)%5==0)
+			  printf("\n");
+		  printf("%5d",CUPartSize[i]);
+	  }
 
-  //CTU信息分析   实验仅限第六帧
-  //现在开始整个视频序列测试
+	  printf("CUTargetMode:\n");
+	  for (int i=0;i<85;i++)
+	  {
 
+		  if((i+1)%5==0)
+			  printf("\n");
+		  printf("%5d",CUTargetMode[i]);
+	  }*/
+	  ///////// test zzz end  ///////
+  
+
+
+
+
+  xCompressCU( m_ppcBestCU[0], m_ppcTempCU[0], 0 DEBUG_STRING_PASS_INTO(sDebug) );
+
+  //CTU信息分析  
   srand((unsigned)time(NULL));
-
   if (CUComCount>84 && pCtu->getSlice()->getSliceType() != I_SLICE)
   {
+	  	  ///////// test zzz begin  ///////
+	 /* printf("CUPartSize:\n");
+	  for (int i=0;i<85;i++)
+	  {
 
-	  /*-----------原信息隐藏算法屏蔽5.6号-------------*/
-	  //if (CUDepth[0] != 0)//被划分 CUTargetMode[0] = 255; 判断是不是64
-	  //{
-		 // CUTargetMode[0] = 255;
-		 // for (j = 1; j <= 64; j = j + 21)
-		 // {
-			//  if (CUDepth[j] == 11) //index是85个PU模式，十位是本来应该depth，个位是本身的level。
-			//  {//没有细分----保存当前Mode为TargetMode
-			//	  //printf("----Fram:%d---CTU:%d--j:%d**32x32***partsize: %d -------------\n",currentPOC, CTUIndex, j, CUPartSize[j]);
-			//	  CUTargetMode[j] = CUPartSize[j];
-			//	  //printf(">>>>>>>>>>>>TargetMode %d ==  %d  ----\n", j, CUTargetMode[j]);
+		  if((i+1)%5==0)
+			  printf("\n");
+		  printf("%5d",CUPartSize[i]);
+	  }
 
-			//	  if (CUPartSize[j] == 1)
-			//	  {
+	  printf("CUTargetMode:\n");
+	  for (int i=0;i<85;i++)
+	  {
 
-			//		  Capacity++; 
-			//		  if (rand() % 100 > 50)//%50概率修改
-			//		  {
-			//			  Capacity++;
-			//			  if (rand() % 100 > 50)//%50概率修改为4
-			//			  {
-			//				  CUTargetMode[j] = 4;
-			//			  }
-			//			  else
-			//			  {
-			//				  CUTargetMode[j] = 5;
-			//			  }
-			//			  ChangeFlag = 1;
-			//		  }
-			//	  }
-			//	  else if (CUPartSize[j] == 2)
-			//	  {
-
-			//		  Capacity++;
-			//		  if (rand() % 100 > 50)//%50概率修改
-			//		  {
-			//			  Capacity++;
-			//			  if (rand() % 100 > 50)//%50概率修改为6
-			//			  {
-			//				  CUTargetMode[j] = 6;
-			//			  }
-			//			  else
-			//			  {
-			//				  CUTargetMode[j] = 7;
-			//			  }
-			//			  ChangeFlag = 1;
-			//		  }
-			//	  }
-			//	  else if (CUPartSize[j] == 4)
-			//	  {
-			//		  if (rand() % 100 > 50)//%50概率修改
-			//		  {
-			//			  if (rand() % 100 > 50)//%50概率修改为5
-			//			  {
-			//				  CUTargetMode[j] = 4;
-			//			  }
-			//			  else
-			//			  {
-			//				  CUTargetMode[j] = 5;
-			//			  }
-			//			  Capacity += 2;
-			//			  ChangeFlag = 1;
-			//		  }
-			//		  else
-			//		  {
-			//			  Capacity++;
-			//			  CUTargetMode[j] = 1;
-			//			  ChangeFlag = 1;
-			//		  }
-			//	  }
-			//	  else if (CUPartSize[j] == 5)
-			//	  {
-			//		  if (rand() % 100 > 50)//%50概率修改
-			//		  {
-			//			  Capacity += 2;
-			//			  if (rand() % 100 > 50)//%50概率修改为4
-			//			  {
-			//				  CUTargetMode[j] = 4;
-			//			  }
-			//			  else
-			//			  {
-			//				  CUTargetMode[j] = 5;
-			//			  }
-			//			  ChangeFlag = 1;
-			//		  }
-			//		  else
-			//		  {
-			//			  Capacity++;
-			//			  CUTargetMode[j] = 1;
-			//			  ChangeFlag = 1;
-			//		  }
-			//	  }
-			//	  else if (CUPartSize[j] == 6)
-			//	  {
-			//		  if (rand() % 100 > 50)//%50概率修改
-			//		  {
-			//			  Capacity += 2;
-			//			  if (rand() % 100 > 50)//%50概率修改为7
-			//			  {
-			//				  CUTargetMode[j] = 6;
-			//			  }
-			//			  else
-			//			  {
-			//				  CUTargetMode[j] = 7;
-			//			  }
-			//			  ChangeFlag = 1;
-			//		  }
-			//		  else
-			//		  {
-			//			  Capacity++;
-			//			  CUTargetMode[j] = 2;
-			//			  ChangeFlag = 1;
-			//		  }
-			//	  }
-			//	  else if (CUPartSize[j] == 7)
-			//	  {
-			//		  if (rand() % 100 > 50)//%50概率修改
-			//		  {
-			//			  Capacity += 2;
-			//			  if (rand() % 100 > 50)//%50概率修改为6
-			//			  {
-			//				  CUTargetMode[j] = 6;
-			//			  }
-			//			  else
-			//			  {
-			//				  CUTargetMode[j] = 7;
-			//			  }
-			//			  ChangeFlag = 1;
-			//		  }
-			//		  else
-			//		  {
-			//			  Capacity++;
-			//			  CUTargetMode[j] = 2;
-			//			  ChangeFlag = 1;
-			//		  }
-			//	  }
-
-
-			//  }
-			//  else
-			//  {//被划分，TargetMode改为255,然后看内部CU
-			//	  CUTargetMode[j] = 255;
-			//	  for (i = 1+j; i <= 16+j; i = i + 5)//判断2，7，12，17四个CU
-			//	  {
-			//		  if (CUDepth[i] == 22)//划分成了16x16
-			//		  {
-			//			  //printf("----Fram:%d---CTU:%d--i:%d**16x16***partsize: %d -------------\n", currentPOC, CTUIndex, i, CUPartSize[i]);
-			//			  //CUTargetMode[i] = 2;
-			//			  CUTargetMode[i] = CUPartSize[i];
-			//			  
-			//			/* 屏蔽16x16原本的，lzh*/
-			//			  if (CUPartSize[i] == 0)
-			//			  {
-			//				  CUTargetMode[i] = 0;
-			//			  }
-			//			  else if (CUPartSize[i] == 1)
-			//			  {
-			//				  Capacity++;
-			//				  if (rand() % 100 > 50)//%50概率修改
-			//				  {
-			//					  Capacity++;
-			//					  if (rand() % 100 > 50)//%50概率修改为4
-			//					  {
-			//						  CUTargetMode[i] = 4;
-			//					  }
-			//					  else
-			//					  {
-			//						  CUTargetMode[i] = 5;
-			//					  }
-			//					  ChangeFlag = 1;
-			//				  }
-			//			  }
-			//			  else if (CUPartSize[i] == 2)
-			//			  {
-			//				  Capacity++;
-			//				  if (rand() % 100 > 50)//%50概率修改
-			//				  {
-			//					  Capacity++;
-			//					  if (rand() % 100 > 50)//%50概率修改为6
-			//					  {
-			//						  CUTargetMode[i] = 6;
-			//					  }
-			//					  else
-			//					  {
-			//						  CUTargetMode[i] = 7;
-			//					  }
-			//					  ChangeFlag = 1;
-			//				  }
-			//			  }
-			//			  else if (CUPartSize[i] == 4)
-			//			  {
-			//				  if (rand() % 100 > 50)//%50概率修改
-			//				  {
-			//					  if (rand() % 100 > 50)//%50概率修改为5
-			//					  {
-			//						  CUTargetMode[i] = 4;
-			//					  }
-			//					  else
-			//					  {
-			//						  CUTargetMode[i] = 5;
-			//					  }
-			//					  Capacity += 2;
-			//					  ChangeFlag = 1;
-			//				  }
-			//				  else
-			//				  {
-			//					  Capacity++;
-			//					  CUTargetMode[i] = 1;
-			//					  ChangeFlag = 1;
-			//				  }
-			//			  }
-			//			  else if (CUPartSize[i] == 5)
-			//			  {
-			//				  if (rand() % 100 > 50)//%50概率修改
-			//				  {
-			//					  Capacity += 2;
-			//					  if (rand() % 100 > 50)//%50概率修改为4
-			//					  {
-			//						  CUTargetMode[i] = 4;
-			//					  }
-			//					  else
-			//					  {
-			//						  CUTargetMode[i] = 5;
-			//					  }
-			//					  ChangeFlag = 1;
-			//				  }
-			//				  else
-			//				  {
-			//					  Capacity++;
-			//					  CUTargetMode[i] = 1;
-			//					  ChangeFlag = 1;
-			//				  }
-			//			  }
-			//			  else if (CUPartSize[i] == 6)
-			//			  {
-			//				  if (rand() % 100 > 50)//%50概率修改
-			//				  {
-			//					  Capacity += 2;
-			//					  if (rand() % 100 > 50)//%50概率修改为7
-			//					  {
-			//						  CUTargetMode[i] = 6;
-			//					  }
-			//					  else
-			//					  {
-			//						  CUTargetMode[i] = 7;
-			//					  }
-			//					  ChangeFlag = 1;
-			//				  }
-			//				  else
-			//				  {
-			//					  Capacity++;
-			//					  CUTargetMode[i] = 2;
-			//					  ChangeFlag = 1;
-			//				  }
-			//			  }
-			//			  else if (CUPartSize[i] == 7)
-			//			  {
-			//				  if (rand() % 100 > 50)//%50概率修改
-			//				  {
-			//					  Capacity += 2;
-			//					  if (rand() % 100 > 50)//%50概率修改为6
-			//					  {
-			//						  CUTargetMode[i] = 6;
-			//					  }
-			//					  else
-			//					  {
-			//						  CUTargetMode[i] = 7;
-			//					  }
-			//					  ChangeFlag = 1;
-			//				  }
-			//				  else
-			//				  {
-			//					  Capacity++;
-			//					  CUTargetMode[i] = 2;
-			//					  ChangeFlag = 1;
-			//				  }
-			//			  }
-			//			 // */
-			//			  //printf(">>>>>>>>>>>>TargetMode %d ==  %d  ----\n", i, CUTargetMode[i]);
-			//				//屏蔽16x16原本的，lzh
-			//		  }
-			//		  else//划分成了8x8x4   TargetMode改为255  Question1
-			//		  {
-			//			  CUTargetMode[i] = 255;
-			//			  ChangeFlag = 1;
-						  
-			//			  for (n = 1; n <= 4; n++)
-			//			  {
-			//				  Capacity += 2;
-			//				  if (rand() % 100 > 50)
-			//				  {
-			//					  if (rand() % 100 > 50)
-			//					  {
-			//						  CUTargetMode[i + n] = 0;
-			//					  }
-			//					  else
-			//					  {
-			//						  CUTargetMode[i + n] = 1;
-			//					  }
-			//				  }
-			//				  else
-			//				  {
-			//					  if (rand() % 100 > 50)
-			//					  {
-			//						  CUTargetMode[i + n] = 2;
-			//					  }
-			//					  else
-			//					  {
-			//						  CUTargetMode[i + n] = 3;
-			//					  }
-			//				  }
-			//			  }
+		  if((i+1)%5==0)
+			  printf("\n");
+		  printf("%5d",CUTargetMode[i]);
+	  }*/
+	  ///////// test zzz end  ///////
 
 
 
-			//			  //printf("CU%d Divided into 8x8x4----------------------------------\n",i);
-			//		  }
 
-			//	  }
-			//  }
-		 // }
-	  //}
-	  //else//64没有划分
-	  //{
-		 // CUTargetMode[0] = CUPartSize[0];//Level3
-		 // //printf("----Fram:%d---CTU:%d-------64x64-------------\n", currentPOC, CTUIndex);
-		 // 
-		 // if (CUPartSize[0] == 1)
-		 // {
-			//  Capacity++;
-			//  if (rand() % 100 > 50)//50%几率修改
-			//  {
-			//	  Capacity++;
-			//	  if (rand() % 100 > 50)
-			//	  {
-			//		  CUTargetMode[0] = 4;
-			//	  }
-			//	  else
-			//	  {
-			//		  CUTargetMode[0] = 5;
-			//	  }
-			//	  ChangeFlag = 1;
-			//  }
-		 // }
-		 // else if (CUPartSize[0] == 2)
-		 // {
-			//  Capacity++;
-			//  if (rand() % 100 > 50)//50%几率修改
-			//  {
-			//	  Capacity++;
-			//	  if (rand() % 100 > 50)
-			//	  {
-			//		  CUTargetMode[0] = 6;
-			//	  }
-			//	  else
-			//	  {
-			//		  CUTargetMode[0] = 7;
-			//	  }
-			//	  ChangeFlag = 1;
-			//  }
-		 // }
-		 // else if (CUPartSize[0] == 4 || CUPartSize[0] == 5) //question2
-		 // {
-			//  if (rand() % 100 > 50)//%50概率修改
-			//  {
-			//	  if (rand() % 100 > 50)//%50概率修改为5
-			//	  {
-			//		  CUTargetMode[0] = 4;
-			//	  }
-			//	  else
-			//	  {
-			//		  CUTargetMode[0] = 5;
-			//	  }
-			//	  Capacity += 2;
-			//	  ChangeFlag = 1;
-			//  }
-			//  else
-			//  {
-			//	  Capacity++;
-			//	  CUTargetMode[0] = 1;
-			//	  ChangeFlag = 1;
-			//  }
-		 // }
-		 // else if (CUPartSize[0] == 6 || CUPartSize[0] == 7)
-		 // {
-			//  if (rand() % 100 > 50)//%50概率修改
-			//  {
-			//	  if (rand() % 100 > 50)//%50概率修改为5
-			//	  {
-			//		  CUTargetMode[0] = 6;
-			//	  }
-			//	  else
-			//	  {
-			//		  CUTargetMode[0] = 7;
-			//	  }
-			//	  Capacity += 2;
-			//	  ChangeFlag = 1;
-			//  }
-			//  else
-			//  {
-			//	  Capacity++;
-			//	  CUTargetMode[0] = 2;
-			//	  ChangeFlag = 1;
-			//  }
-		 // }
-		 // //printf(">>>>>>>>>>>>TargetMode 0 ==  %d  ----\n",  CUTargetMode[0]);
-	  //}
+/* 屏蔽杨艺媛嵌入信息代码--开始 **********
+
+	  if (CUDepth[0] != 0)//被划分 CUTargetMode[0] = 255;
+	  {
+		  CUTargetMode[0] = 255;
+		  for (int j = 1; j <= 64; j = j + 21)
+		  {
+			  if (CUDepth[j] == 11)
+			  {//没有细分----保存当前Mode为TargetMode
+				// printf("----Fram:%d---CTU:%d--j:%d**32x32***partsize: %d -------------\n",currentPOC, CTUIndex, j, CUPartSize[j]);
+				  if((judgeMode&4) == 0) CUTargetMode[j] = CUPartSize[j];
+				  else{
+					 // printf("%d__________________-----------__________修改32*32\n",judgeMode&4 );
+					  CUTargetMode[j] = CUPartSize[j];
+					   if (CUPartSize[j] == 1)
+				  {
+
+					  Capacity++;
+					 if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity++;
+						  if (rand() % 100 > 50)//%50概率修改为4
+						  {
+							  CUTargetMode[j] = 4;
+						  }
+						  else
+						  {
+							  CUTargetMode[j] = 5;
+						  }
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[j] == 2)
+				  {
+
+					  Capacity++;
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity++;
+						  if (rand() % 100 > 50)//%50概率修改为6
+						  {
+							  CUTargetMode[j] = 6;
+						  }
+						  else
+						  {
+							  CUTargetMode[j] = 7;
+						  }
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[j] == 4)
+				  {
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  if (rand() % 100 > 50)//%50概率修改为5
+						  {
+							  CUTargetMode[j] = 4;
+						  }
+						  else
+						  {
+							  CUTargetMode[j] = 5;
+						  }
+						  Capacity += 2;
+						  ChangeFlag = 1;
+					  }
+					  else
+					  {
+						  Capacity++;
+						  CUTargetMode[j] = 1;
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[j] == 5)
+				  {
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity += 2;
+						  if (rand() % 100 > 50)//%50概率修改为4
+						  {
+							  CUTargetMode[j] = 4;
+						  }
+						  else
+						  {
+							  CUTargetMode[j] = 5;
+						  }
+						  ChangeFlag = 1;
+					  }
+					  else
+					  {
+						  Capacity++;
+						  CUTargetMode[j] = 1;
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[j] == 6)
+				  {
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity += 2;
+						  if (rand() % 100 > 50)//%50概率修改为7
+						  {
+							  CUTargetMode[j] = 6;
+						  }
+						  else
+						  {
+							  CUTargetMode[j] = 7;
+						  }
+						  ChangeFlag = 1;
+					  }
+					  else
+					  {
+						  Capacity++;
+						  CUTargetMode[j] = 2;
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[j] == 7)
+				  {
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity += 2;
+						  if (rand() % 100 > 50)//%50概率修改为6
+						  {
+							  CUTargetMode[j] = 6;
+						  }
+						  else
+						  {
+							  CUTargetMode[j] = 7;
+						  }
+						  ChangeFlag = 1;
+					  }
+					  else
+					  {
+						  Capacity++;
+						  CUTargetMode[j] = 2;
+						  ChangeFlag = 1;
+					  }
+				  }
+				  }
+			  }
+			  else
+			  {//被划分，TargetMode改为255,然后看内部CU
+				  CUTargetMode[j] = 255;
+				  for (int i = 1+j; i <= 16+j; i = i + 5)//判断2，7，12，17四个CU
+				  {
+					  if (CUDepth[i] == 22)//划分成了16x16
+					  {
+						   if((judgeMode&2) == 0) CUTargetMode[i] = CUPartSize[i];
+						   else{
+							//   printf("%d__________________-----------__________修改16*16 \n",judgeMode&2);
+							   CUTargetMode[i] = CUPartSize[i];
+							   if (CUPartSize[i] == 1)
+				  {
+
+					  Capacity++;
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity++;
+						  if (rand() % 100 > 50)//%50概率修改为4
+						  {
+							  CUTargetMode[i] = 4;
+						  }
+						  else
+						  {
+							  CUTargetMode[i] = 5;
+						  }
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[i] == 2)
+				  {
+
+					  Capacity++;
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity++;
+						  if (rand() % 100 > 50)//%50概率修改为6
+						  {
+							  CUTargetMode[i] = 6;
+						  }
+						  else
+						  {
+							  CUTargetMode[i] = 7;
+						  }
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[i] == 4)
+				  {
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  if (rand() % 100 > 50)//%50概率修改为5
+						  {
+							  CUTargetMode[i] = 4;
+						  }
+						  else
+						  {
+							  CUTargetMode[i] = 5;
+						  }
+						  Capacity += 2;
+						  ChangeFlag = 1;
+					  }
+					  else
+					  {
+						  Capacity++;
+						  CUTargetMode[i] = 1;
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[i] == 5)
+				  {
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity += 2;
+						  if (rand() % 100 > 50)//%50概率修改为4
+						  {
+							  CUTargetMode[i] = 4;
+						  }
+						  else
+						  {
+							  CUTargetMode[i] = 5;
+						  }
+						  ChangeFlag = 1;
+					  }
+					  else
+					  {
+						  Capacity++;
+						  CUTargetMode[i] = 1;
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[i] == 6)
+				  {
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity += 2;
+						  if (rand() % 100 > 50)//%50概率修改为7
+						  {
+							  CUTargetMode[i] = 6;
+						  }
+						  else
+						  {
+							  CUTargetMode[i] = 7;
+						  }
+						  ChangeFlag = 1;
+					  }
+					  else
+					  {
+						  Capacity++;
+						  CUTargetMode[i] = 2;
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[i] == 7)
+				  {
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity += 2;
+						  if (rand() % 100 > 50)//%50概率修改为6
+						  {
+							  CUTargetMode[i] = 6;
+						  }
+						  else
+						  {
+							  CUTargetMode[i] = 7;
+						  }
+						  ChangeFlag = 1;
+					  }
+					  else
+					  {
+						  Capacity++;
+						  CUTargetMode[i] = 2;
+						  ChangeFlag = 1;
+					  }
+				  }
+						   }
+					  }
+					  else//划分成了8x8x4   TargetMode改为255
+					  {
+						  CUTargetMode[i] = 255;
+						  if((judgeMode&1) == 0){
+							CUTargetMode[i + 1] = CUPartSize[i + 1];
+							CUTargetMode[i + 2] = CUPartSize[i + 2];
+							CUTargetMode[i + 3] = CUPartSize[i + 3];
+							CUTargetMode[i + 4] = CUPartSize[i + 4];
+							//cout<<"CUPartSize[i + n]="<<CUPartSize[i + 1]<<endl;//--ljd
+							//cout<<"CUPartSize[i + n]="<<CUPartSize[i + 2]<<endl;//--ljd
+							//cout<<"CUPartSize[i + n]="<<CUPartSize[i + 3]<<endl;//--ljd
+							//cout<<"CUPartSize[i + n]="<<CUPartSize[i + 4]<<endl;//--ljd
+						  }else{
+
+							  if((judgeMode&16) != 0){//屏蔽2N*@N
+								  for(int k=1;k<5;k++){
+									  if(CUPartSize[i + k]==SIZE_2Nx2N){
+										  CUTargetMode[i+k] = SIZE_2Nx2N;
+									  }
+									  if(CUPartSize[i + k]==SIZE_NxN){
+										   if (rand() % 100 > 50)//%50概率修改
+											  {
+												  Capacity += 2;
+												  if (rand() % 100 > 50)//%50概率修改为6
+												  {
+													   CUTargetMode[i+k] = SIZE_Nx2N;
+												  }
+												  else
+												  {
+													   CUTargetMode[i+k] = SIZE_2NxN;
+												  }
+												  ChangeFlag = 1;
+											  }
+											  else
+											  {
+												  Capacity++;
+												  CUTargetMode[i+k] = SIZE_NxN;
+												  ChangeFlag = 1;
+											  }
+									  }
+									  if(CUPartSize[i + k]==SIZE_Nx2N){
+										  if (rand() % 100 > 50)//%50概率修改
+											  {
+												  Capacity += 2;
+												  if (rand() % 100 > 50)//%50概率修改为6
+												  {
+													   CUTargetMode[i+k] = SIZE_Nx2N;
+												  }
+												  else
+												  {
+													   CUTargetMode[i+k] = SIZE_2NxN;
+												  }
+												  ChangeFlag = 1;
+											  }
+											  else
+											  {
+												  Capacity++;
+												  CUTargetMode[i+k] = SIZE_NxN;
+												  ChangeFlag = 1;
+											  }
+									  }
+									  if(CUPartSize[i + k]==SIZE_2NxN){
+										  if (rand() % 100 > 50)//%50概率修改
+											  {
+												  Capacity += 2;
+												  if (rand() % 100 > 50)//%50概率修改为6
+												  {
+													   CUTargetMode[i+k] = SIZE_Nx2N;
+												  }
+												  else
+												  {
+													   CUTargetMode[i+k] = SIZE_2NxN;
+												  }
+												  ChangeFlag = 1;
+											  }
+											  else
+											  {
+												  Capacity++;
+												  CUTargetMode[i+k] = SIZE_NxN;
+												  ChangeFlag = 1;
+											  }
+									  }
+								  }
+							  }else{
+							//  printf("%d__________________-----------__________修改8*8\n",judgeMode&1 );
+								  for(int k=1;k<5;k++){
+									//  printf(">>>>>>>>>>>>TargetMode %d ==  %d  ----\n", i+k, CUPartSize[i + k]);
+									  if(CUPartSize[i + k]==SIZE_2Nx2N){
+										//  PUcategeory[0]++;
+										//  if(CurrentPOC==1) FPUcategeory[0]++;
+										  //CUTargetMode[i + k] = SIZE_NxN;						 
+										 // printf(">>>>>>>>>>>>TargetMode %d ==  %d  ----\n",i+ k, CUTargetMode[i+k]);
+												  int randnum = rand() % 100;
+												//	int randnum = 1;
+												  if (randnum < 25)//%50概率修改为6
+												  {
+													  CUTargetMode[i+k] = SIZE_NxN;
+													   ChangeFlag=1;
+													   Capacity +=2;
+										//			   PUcategeoryC[1]++;
+													  // if(CurrentPOC==1) FPUcategeoryC[1]++;
+												  }
+												  else if(randnum >= 25 && randnum < 50)
+												  {
+													  CUTargetMode[i+k] = SIZE_Nx2N;
+													   ChangeFlag=1;
+													   Capacity +=2;
+													//    PUcategeoryC[2]++;
+													  // if(CurrentPOC==1) FPUcategeoryC[2]++;
+												  }else if(randnum >= 50 && randnum < 75){
+													  CUTargetMode[i+k] = SIZE_2NxN;
+													   ChangeFlag=1;
+													   Capacity +=2;
+													//    PUcategeoryC[3]++;
+													  // if(CurrentPOC==1) FPUcategeoryC[3]++;
+												  }else{
+													  CUTargetMode[i+k] = CUPartSize[i + k];
+													 //  PUcategeoryC[0]++;
+													  // if(CurrentPOC==1) FPUcategeoryC[0]++;
+												  }
+									  
+									  }
+									  if(CUPartSize[i + k]==SIZE_NxN){
+										 ///  PUcategeory[1]++;
+										   //if(CurrentPOC==1) FPUcategeory[1]++;
+										  //CUTargetMode[i + k] = SIZE_NxN;
+								 
+										 // printf(">>>>>>>>>>>>TargetMode %d ==  %d  ----\n",i+ k, CUTargetMode[i+k]);
+												  int randnum = rand() % 100;
+												  if (randnum < 25)//%50概率修改为6
+												  {
+													  CUTargetMode[i+k] = SIZE_2Nx2N;
+													   ChangeFlag=1;
+													   Capacity +=2;
+													  //  PUcategeoryC[0]++;
+													   //if(CurrentPOC==1) FPUcategeoryC[0]++;
+												  }
+												  else if(randnum >= 25 && randnum < 50)
+												  {
+													  CUTargetMode[i+k] = SIZE_Nx2N;
+													   ChangeFlag=1;
+													   Capacity +=2;
+													 //   PUcategeoryC[2]++;
+													   //if(CurrentPOC==1) FPUcategeoryC[2]++;
+												  }else if(randnum >= 50 && randnum < 75){
+													  CUTargetMode[i+k] = SIZE_2NxN;
+													   ChangeFlag=1;
+													   Capacity +=2;
+													 //   PUcategeoryC[3]++;
+													   //if(CurrentPOC==1) FPUcategeoryC[3]++;
+												  }else{
+													  CUTargetMode[i+k] = CUPartSize[i + k];
+													//   PUcategeoryC[1]++;
+													  // if(CurrentPOC==1) FPUcategeoryC[1]++;
+												  }
+									  
+									  }
+									   if(CUPartSize[i + k]==SIZE_Nx2N){
+										  //  PUcategeory[2]++;
+											//if(CurrentPOC==1) FPUcategeory[2]++;
+										  //CUTargetMode[i + k] = SIZE_NxN;
+								 
+										 // printf(">>>>>>>>>>>>TargetMode %d ==  %d  ----\n",i+ k, CUTargetMode[i+k]);
+												  int randnum = rand() % 100;
+												  if (randnum < 25)//%50概率修改为6
+												  {
+													  CUTargetMode[i+k] = SIZE_NxN;
+													   ChangeFlag=1;
+													   Capacity +=2;
+												//	    PUcategeoryC[1]++;
+													//   if(CurrentPOC==1) FPUcategeoryC[1]++;
+												  }
+												  else if(randnum >= 25 && randnum < 50)
+												  {
+													  CUTargetMode[i+k] = SIZE_2Nx2N;
+													   ChangeFlag=1;
+													   Capacity +=2;
+													//    PUcategeoryC[0]++;
+													  // if(CurrentPOC==1) FPUcategeoryC[0]++;
+												  }else if(randnum >= 50 && randnum < 75){
+													  CUTargetMode[i+k] = SIZE_2NxN;
+													   ChangeFlag=1;
+													   Capacity +=2;
+													//    PUcategeoryC[3]++;
+													  // if(CurrentPOC==1) FPUcategeoryC[3]++;
+												  }else{
+													  CUTargetMode[i+k] = CUPartSize[i + k];
+													//   PUcategeoryC[2]++;
+													  // if(CurrentPOC==1) FPUcategeoryC[2]++;
+												  }
+									  
+									  }
+									   if(CUPartSize[i + k]==SIZE_2NxN){
+										 //   PUcategeory[3]++;
+											//if(CurrentPOC==1) FPUcategeory[3]++;
+										  //CUTargetMode[i + k] = SIZE_NxN;
+								 
+										 // printf(">>>>>>>>>>>>TargetMode %d ==  %d  ----\n",i+ k, CUTargetMode[i+k]);
+												  int randnum = rand() % 100;
+												  if (randnum < 25)//%50概率修改为6
+												  {
+													  CUTargetMode[i+k] = SIZE_NxN;
+													   ChangeFlag=1;
+													   Capacity +=2;
+												//	    PUcategeoryC[1]++;
+													//   if(CurrentPOC==1) FPUcategeoryC[1]++;
+												  }
+												  else if(randnum >= 25 && randnum < 50)
+												  {
+													  CUTargetMode[i+k] = SIZE_Nx2N;
+													   ChangeFlag=1;
+													   Capacity +=2;
+													 //   PUcategeoryC[2]++;
+													   //if(CurrentPOC==1) FPUcategeoryC[2]++;
+												  }else if(randnum >= 50 && randnum < 75){
+													  CUTargetMode[i+k] = SIZE_2Nx2N;
+													   ChangeFlag=1;
+													   Capacity +=2;
+													 //   PUcategeoryC[0]++;
+													   //if(CurrentPOC==1) FPUcategeoryC[0]++;
+												  }else{
+													  CUTargetMode[i+k] = CUPartSize[i + k];
+													//   PUcategeoryC[3]++;
+													  // if(CurrentPOC==1) FPUcategeoryC[3]++;
+												  }
+									  
+									  }
+								  }
+							 }
+						  }
+					  }
+
+				  }
+			  }
+		  }
+	  }
+	  else
+	  {
+		  //printf("----Fram:%d---CTU:%d-------64x64-------------\n", currentPOC, CTUIndex);
+		  if((judgeMode&8) == 0) CUTargetMode[0] = CUPartSize[0];
+		  else{
+			 // printf("%d__________________-----------__________修改64*64\n",judgeMode&8 );
+			  if (CUPartSize[0] == 1)
+				  {
+
+					  Capacity++;
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity++;
+						  if (rand() % 100 > 50)//%50概率修改为4
+						  {
+							  CUTargetMode[0] = 4;
+						  }
+						  else
+						  {
+							  CUTargetMode[0] = 5;
+						  }
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[0] == 2)
+				  {
+
+					  Capacity++;
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity++;
+						  if (rand() % 100 > 50)//%50概率修改为6
+						  {
+							  CUTargetMode[0] = 6;
+						  }
+						  else
+						  {
+							  CUTargetMode[0] = 7;
+						  }
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[0] == 4)
+				  {
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  if (rand() % 100 > 50)//%50概率修改为5
+						  {
+							  CUTargetMode[0] = 4;
+						  }
+						  else
+						  {
+							  CUTargetMode[0] = 5;
+						  }
+						  Capacity += 2;
+						  ChangeFlag = 1;
+					  }
+					  else
+					  {
+						  Capacity++;
+						  CUTargetMode[0] = 1;
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[0] == 5)
+				  {
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity += 2;
+						  if (rand() % 100 > 50)//%50概率修改为4
+						  {
+							  CUTargetMode[0] = 4;
+						  }
+						  else
+						  {
+							  CUTargetMode[0] = 5;
+						  }
+						  ChangeFlag = 1;
+					  }
+					  else
+					  {
+						  Capacity++;
+						  CUTargetMode[0] = 1;
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[0] == 6)
+				  {
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity += 2;
+						  if (rand() % 100 > 50)//%50概率修改为7
+						  {
+							  CUTargetMode[0] = 6;
+						  }
+						  else
+						  {
+							  CUTargetMode[0] = 7;
+						  }
+						  ChangeFlag = 1;
+					  }
+					  else
+					  {
+						  Capacity++;
+						  CUTargetMode[0] = 2;
+						  ChangeFlag = 1;
+					  }
+				  }
+				  else if (CUPartSize[0] == 7)
+				  {
+					  if (rand() % 100 > 50)//%50概率修改
+					  {
+						  Capacity += 2;
+						  if (rand() % 100 > 50)//%50概率修改为6
+						  {
+							  CUTargetMode[0] = 6;
+						  }
+						  else
+						  {
+							  CUTargetMode[0] = 7;
+						  }
+						  ChangeFlag = 1;
+					  }
+					  else
+					  {
+						  Capacity++;
+						  CUTargetMode[0] = 2;
+						  ChangeFlag = 1;
+					  }
+				  }
+		  }
+	  }
+
+	   屏蔽杨艺媛嵌入信息代码--结束 **********/
 
 
-	
+// 复制emd代码--开始 *************
+
 	  if (CUDepth[0] != 0 )//被划分 CUTargetMode[0] = 255; 判断是不是64
 	  {
 		  CUTargetMode[0] = 255;
@@ -803,6 +1098,9 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 						  CUTargetMode[i] = 255;
 						 for (n = 1; n <= 4; n++)
 						  {
+							CUTargetMode[i + n] = CUPartSize[i + n];//是不是应该加上这句话？ --刘金豆
+							//cout<<"CUPartSize[i + n]="<<CUPartSize[i + n]<<endl;//--ljd
+
 							EMD_8_CUTargetMode[CUnum_8]=i+n; 
 						    CUnum_8++; 
 
@@ -823,7 +1121,7 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 	  }
 
 /*>>>>>>>>>>>>>>>>>>>>>>lzh 16x16 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
-	  if(CUnum_16> 2) //如果一个CTU的16x16个数,屏蔽这个if就屏蔽了lzh的算法 16X16开关
+	  if(CUnum_16> 2 && 1) //如果一个CTU的16x16个数,屏蔽这个if就屏蔽了lzh的算法 16X16开关
 	  {
 		  
 		for(ii =0;ii+2<CUnum_16;ii = ii+3) //ii指的是16x16  的target
@@ -1108,8 +1406,7 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 /*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 16x16 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
 
 
-	   
- 
+  
 	  /*>>>>>>>>>>>>>>>>>>>>>>以下为 lzh 32X32 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
 	  if(CUnum_32>=3 && 0) //如果一个CTU的 32X32个数,屏蔽这个if就屏蔽了lzh的算法 32X32开关
    
@@ -1397,13 +1694,16 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 /*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 32x32<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
 
  /*>>>>>>>>>>>>>>>>>>>>>>以下为lzh 8X8 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
-	  if(CUnum_8>2  ) //如果一个CTU的8X8个数,屏蔽这个if就屏蔽了lzh的算法 8X8开关
+	  if(CUnum_8>2  && 0) //如果一个CTU的8X8个数,屏蔽这个if就屏蔽了lzh的算法 8X8开关
 	  {
 		  ChangeFlag =1;
 		for(ii =0;ii<CUnum_8;ii++) //ii指的是8X8  的target
 		  {
 
 			 //1维 N=1
+
+			  //cout<<"CUTargetMode[EMD_8_CUTargetMode[ii]]="<<CUTargetMode[EMD_8_CUTargetMode[ii]]<<endl;
+
 			  randnum = rand() % 3;  //2N+1 ，randnum为待嵌入信息
 			  Capacity += 1.6 ;//2.8=log2(7)
 			  aim_bit = rand() % 2;
@@ -1492,60 +1792,40 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
         }
     }
 /*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 64x64 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
-	  if( CUComCount>84 && pCtu->getSlice()->getSliceType() != I_SLICE){
+
+
+
+
+// 复制emd代码--结束 *************
+
+
+
+
+
+
+  
+ 
+  if( CUComCount>84 && pCtu->getSlice()->getSliceType() != I_SLICE){
 	  if(ChangeFlag==1){
-		  
+		  isorg = 0;
 		  countC(CUTargetMode);
 	  }else{
-		  
+		  isorg = 1;
 		  countC(CUPartSize);
 	  }
   }
 
-	  
-	  //for (int targetmode_li = 0;targetmode_li<4;targetmode_li++)
-	  //{
-		 // printf(">>>>>>>>>>>>EMD_32_CUTargetMode %d =  %d  -- \n", targetmode_li, EMD_32_CUTargetMode[targetmode_li]);
-		 // 		/*>>>>>>>>>>>>>>>>>>>原信息隐藏算法屏蔽5.6号<<<<<<<<<<<<<<<<< */
-   // 	  		
-	  //} 
-	  //for (int targetmode_li = 0;targetmode_li<1;targetmode_li++)
-	  //{
-		 // printf(">>>>>>>>>>>>EMD_64_CUTargetMode %d =  %d  -- \n", targetmode_li, EMD_64_CUTargetMode[targetmode_li]);
-		 // 		/*>>>>>>>>>>>>>>>>>>>原信息隐藏算法屏蔽5.6号<<<<<<<<<<<<<<<<< */
-   // 	  		
-	  //} 
-	  //for (int targetmode_li = 0;targetmode_li<16;targetmode_li++)
-	  //{
-		 // printf(">>>>>>>>>>>>EMD_16_CUTargetMode %d =  %d  -- \n", targetmode_li, EMD_16_CUTargetMode[targetmode_li]);
-		 // 		/*>>>>>>>>>>>>>>>>>>>原信息隐藏算法屏蔽5.6号<<<<<<<<<<<<<<<<< */
-   // 	  		
-	  //} 
-	  //for (int targetmode_li = 0;targetmode_li<64;targetmode_li++)
-	  //{
-		 // printf(">>>>>>>>>>>>EMD_8_CUTargetMode %d =  %d  -- \n", targetmode_li, EMD_8_CUTargetMode[targetmode_li]);
-		 // 		/*>>>>>>>>>>>>>>>>>>>原信息隐藏算法屏蔽5.6号<<<<<<<<<<<<<<<<< */
-   // 	  		
-	  //} 
-	  // for (int targetmode_li = 0;targetmode_li<85;targetmode_li++)
-	  //{
-		 // printf(">>>>>>>>>>>>CUPartSize %d =  %d  --\n", targetmode_li, CUPartSize[targetmode_li]);
-		 // printf(">>>>>>>>>>>>CUTargetMode %d =  %d  --\n", targetmode_li, CUTargetMode[targetmode_li]);
-		 // printf(">>>>CUDepth[%d]=%d >>>>>>>>\n",targetmode_li,CUDepth[targetmode_li]);
-	  //}
-
-	  // ChangeFlag =1; //EMD算法目前所有都改。
-  if (1 && CUComCount>84 && pCtu->getSlice()->getSliceType() != I_SLICE && ChangeFlag==1)//如果CUPartSize[84]==255说明该CTU不完整，不可用。 currentPOC == 6 &&       加上&&0条件代表不进行修改。 修改或者不修改的总开 
-  {													//ChangeFlag 表示是否有16x16（？？？）被修改，如果没有，则为0，不需要重新压缩一遍。
+  if (1 && CUComCount>84 && pCtu->getSlice()->getSliceType() != I_SLICE && ChangeFlag==1)//如果CUPartSize[84]==255说明该CTU不完整，不可用
+  {													
 	  //写入目标划分类型
 	  //for (i = 0; i < 85; i++)
 	  //{
 		 // printf("888888888888888888888888888888=========PartMode %d ==  %d  Depth=%d----\n", i, CUPartSize[i], CUDepth[i]);
 	  //}
-	  //for (j = 0; j < 85; j++)
-	  //{
-		 // printf("7777777777777777777777777777777777TargetMode %d ==  %d  ----\n", j, CUTargetMode[j]);
-	  //}
+	 /* for (j = 0; j < 85; j++)
+	  {
+		 printf("7777777777777777777777777777777777TargetMode %d ==  %d  ----\n", j, CUTargetMode[j]);
+	  }*/
 	  //第二次压缩当前CTU
 
 	  m_ppcBestCU[0]->initCtu(pCtu->getPic(), pCtu->getCtuRsAddr());
@@ -1555,6 +1835,7 @@ Void TEncCu::compressCtu(TComDataCU* pCtu, Int currentPOC)		//修改3，增加参数
 	  CUComCount = 0;
 	  xCompressCU(m_ppcBestCU[0], m_ppcTempCU[0], 0 DEBUG_STRING_PASS_INTO(sDebug));
   }
+
 
   DEBUG_STRING_OUTPUT(std::cout, sDebug)
 
@@ -1750,16 +2031,12 @@ Void TEncCu::deriveTestModeAMP (TComDataCU *pcBestCU, PartSize eParentPartSize, 
  *  - for loop of QP value to compress the current CU with all possible QP
 */
 #if AMP_ENC_SPEEDUP
-Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const UInt uiDepth DEBUG_STRING_FN_DECLARE(sDebug_), PartSize eParentPartSize)
+Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const UInt uiDepth DEBUG_STRING_FN_DECLARE(sDebug_), PartSize eParentPartSize )//------------------------------yyyyyyy
 #else
 Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const UInt uiDepth )
 #endif
 {
-	//ByAslan  输出该函数的调用次数
-	//printf("-------------POC %4d------------", pcPic->getSlice(0)->getPOC());
-	int PocIndex = 0;
 	int TempCount = 0;
-
   TComPic* pcPic = rpcBestCU->getPic();
   DEBUG_STRING_NEW(sDebug)
   const TComPPS &pps=*(rpcTempCU->getSlice()->getPPS());
@@ -1788,29 +2065,17 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const 
 
   const UInt numberValidComponents = rpcBestCU->getPic()->getNumberValidComponents();
 
-  PocIndex = pcPic->getSlice(0)->getPOC();
+  //计算次数-------------------------------------------------------------------------
+
   if (rpcBestCU->getSlice()->getSliceType() != I_SLICE)//PocIndex == 6
   {
 	  CUComCount++;
 	  TempCount = CUComCount-1;
-	  //printf("\tCTUIndex=%d\tCUComCount=%d\n", CTUIndex, CUComCount);
-
+	 // printf("\tCTUIndex=%d\tCUComCount=%d\n", CTUIndex, CUComCount);
 	  CUDepth[TempCount] = 10 * uiDepth;
 
   }
-  //else
-  //{
-	 // CUComCount = 0;
-  //}
 
-
-
-
-  ////ByAslan
-  //if (PocIndex==6)
-  //{
-  //}
-  
 
   if( uiDepth <= pps.getMaxCuDQPDepth() )
   {
@@ -1854,12 +2119,12 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const 
       iMaxQP = iMinQP;
     }
   }
-  
+
   TComSlice * pcSlice = rpcTempCU->getPic()->getSlice(rpcTempCU->getPic()->getCurrSliceIdx());
 
   const Bool bBoundary = !( uiRPelX < sps.getPicWidthInLumaSamples() && uiBPelY < sps.getPicHeightInLumaSamples() );
 
-  if ( !bBoundary )//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  if ( !bBoundary )
   {
     for (Int iQP=iMinQP; iQP<=iMaxQP; iQP++)
     {
@@ -1889,63 +2154,33 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const 
 
       rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
 
-      // do inter modes, SKIP and 2Nx2N           CTU定位修改											--------------------------------------------------------inter modes SKIP and 2Nx2N-------
-	  if (rpcBestCU->getSlice()->getSliceType() != I_SLICE )//添加判断,如果Reset标志是非，说明是第一次运行，那么继续。如果Reset是True，还需要判断目标划分值，如果是0，继续执行，如果不是，该if不执行。
+      // do inter modes, SKIP and 2Nx2N
+      if( rpcBestCU->getSlice()->getSliceType() != I_SLICE )
       {
-		  if (CUResetPart == 0) //quesiton3
-		  {
-			  // 2Nx2N																							-------------------------------------------------2Nx2N   0------------------------
-			  if (m_pcEncCfg->getUseEarlySkipDetection())
-			  {
-				  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_2Nx2N DEBUG_STRING_PASS_INTO(sDebug));
-				  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);//by Competition for inter_2Nx2N
-			  }
-			  // SKIP																								-------------------------------------------------2Nx2N   0  skip------------------------
-			  xCheckRDCostMerge2Nx2N(rpcBestCU, rpcTempCU DEBUG_STRING_PASS_INTO(sDebug), &earlyDetectionSkipMode);//by Merge for inter_2Nx2N
-			  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
+		// 2Nx2N
+		if (CUResetPart == 0 ||CUTargetMode[TempCount] == 0){
+			if(m_pcEncCfg->getUseEarlySkipDetection())
+			{
+			  xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N DEBUG_STRING_PASS_INTO(sDebug) );
+			  rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );//by Competition for inter_2Nx2N
+			}
+			// SKIP
+			xCheckRDCostMerge2Nx2N( rpcBestCU, rpcTempCU DEBUG_STRING_PASS_INTO(sDebug), &earlyDetectionSkipMode );//by Merge for inter_2Nx2N
+			rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
 
-			  if (!m_pcEncCfg->getUseEarlySkipDetection())
+			if(!m_pcEncCfg->getUseEarlySkipDetection())
+			{
+			  // 2Nx2N, NxN
+			  xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2Nx2N DEBUG_STRING_PASS_INTO(sDebug) );
+			  rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
+			  if(m_pcEncCfg->getUseCbfFastMode())
 			  {
-				  // 2Nx2N, NxN
-				  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_2Nx2N DEBUG_STRING_PASS_INTO(sDebug));
-				  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-				  if (m_pcEncCfg->getUseCbfFastMode())
-				  {
-					  doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-				  }
+				doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
 			  }
-		  }
-		  else if (CUTargetMode[TempCount] == 0 || CUTargetMode[TempCount] == 3)
-		  {
-			  //printf("===================== SetPartMode==0  ========= %d\n",TempCount);
-			  // 2Nx2N																							-------------------------------------------------2Nx2N   0------------------------
-			  if (m_pcEncCfg->getUseEarlySkipDetection())
-			  {
-				  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_2Nx2N DEBUG_STRING_PASS_INTO(sDebug));
-				  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);//by Competition for inter_2Nx2N
-			  }
-			  // SKIP																								-------------------------------------------------2Nx2N   0  skip------------------------
-			  xCheckRDCostMerge2Nx2N(rpcBestCU, rpcTempCU DEBUG_STRING_PASS_INTO(sDebug), &earlyDetectionSkipMode);//by Merge for inter_2Nx2N
-			  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-
-			  if (!m_pcEncCfg->getUseEarlySkipDetection())
-			  {
-				  // 2Nx2N, NxN
-				  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_2Nx2N DEBUG_STRING_PASS_INTO(sDebug));
-				  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-				  if (m_pcEncCfg->getUseCbfFastMode())
-				  {
-					  doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-				  }
-			  }
-			  //printf("===================== SetPartMode==0  --done========= %d\n", TempCount);
-		  }
-		  else
-		  {
-			  //printf("============SetPart is NOT 0==============%d\n", TempCount);
-		  }
+			}
+		}
       }
-
+	  
       if (bIsLosslessMode) // Restore loop variable if lossless mode was searched.
       {
         iQP = iMinQP;
@@ -1954,7 +2189,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const 
 
     if(!earlyDetectionSkipMode)
     {
-      for (Int iQP=iMinQP; iQP<=iMaxQP; iQP++)//---------------------------------------------------------------------------------------------------------------start for
+      for (Int iQP=iMinQP; iQP<=iMaxQP; iQP++)
       {
         const Bool bIsLosslessMode = isAddLowestQP && (iQP == iMinQP); // If lossless, then iQP is irrelevant for subsequent modules.
 
@@ -1965,93 +2200,46 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const 
 
         rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
 
-        // do inter modes, NxN, 2NxN, and Nx2N---------------------------------------------------------------------------------------inter modes else-----------------
-        if( rpcBestCU->getSlice()->getSliceType() != I_SLICE )		//不是I_SLICE
+        // do inter modes, NxN, 2NxN, and Nx2N
+        if( rpcBestCU->getSlice()->getSliceType() != I_SLICE )
         {
-          // 2Nx2N, NxN   修改4，直接输出已有的pcPic看看是否正确   是正确的，oye那之前的修改不用管了。
-			//printf("-------------POC %4d------------", pcPic->getSlice(0)->getPOC());
+          // 2Nx2N, NxN
 
-          if(!( (rpcBestCU->getWidth(0)==8) && (rpcBestCU->getHeight(0)==8) ))		//局部最优块的  width=8 & height=8  才不运行 -------------------------NxN   3--------------
+          if(!( (rpcBestCU->getWidth(0)==8) && (rpcBestCU->getHeight(0)==8) ))
           {
-			  if (uiDepth == sps.getLog2DiffMaxMinCodingBlockSize() && doNotBlockPu)//&& (CUResetPart == 0 || CUTargetMode[TempCount] == 3)
+            if( uiDepth == sps.getLog2DiffMaxMinCodingBlockSize() && doNotBlockPu)
             {
-				  if (CUResetPart == 0)
-				  {
-					  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_NxN DEBUG_STRING_PASS_INTO(sDebug));//修改1   屏蔽 NxN模式
-					  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-				  }
-				  else if (CUTargetMode[TempCount] == 3)
-				  {
-					  //printf("===================== SetPartMode==3  ========= %d\n", TempCount);
-					  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_NxN DEBUG_STRING_PASS_INTO(sDebug));//修改1   屏蔽 NxN模式
-					  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-					  //printf("===================== SetPartMode==3  done  ========= %d\n", TempCount);
-				  }
-				  else
-				  {
-					  //printf("============SetPart is NOT 3==============%d\n", TempCount);
-				  }
+				if (CUResetPart == 0 || CUTargetMode[TempCount] == 3){
+				  xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_NxN DEBUG_STRING_PASS_INTO(sDebug)   );
+				  rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
+				}
             }
-          }										//-------------------------------------------------------------------------------------------------------NxN   end----------------
+          }
 
-		  if (doNotBlockPu)// && (CUResetPart == 0 || CUTargetMode[TempCount] == 2)--------------------------------------------------------------------Nx2N   2------------------
+          if(doNotBlockPu)
           {
-			  if (CUResetPart == 0)//屏蔽Nx2N对8x8有效
-			  {
-				  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_Nx2N DEBUG_STRING_PASS_INTO(sDebug));	//修改2 屏蔽Nx2N模式
-				  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-				  if (m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_Nx2N)
-				  {
-					  doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-				  }
+			  if(CUResetPart == 0||CUTargetMode[TempCount] == 2){
+				xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_Nx2N DEBUG_STRING_PASS_INTO(sDebug)  );
+				rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
+				if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_Nx2N )
+				{
+				  doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+				}
 			  }
-			  else if (CUTargetMode[TempCount] == 2)
-			  {
-				  //printf("===================== SetPartMode==2  ========= %d\n", TempCount);
-				  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_Nx2N DEBUG_STRING_PASS_INTO(sDebug));	//修改2 屏蔽Nx2N模式
-				  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-				  if (m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_Nx2N)
-				  {
-					  doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-				  }
-				  //printf("===================== SetPartMode==2  ---done ========= %d\n", TempCount);
-			  }
-			  else
-			  {
-				  //printf("============SetPart is NOT 2==============%d\n", TempCount);
-			  }
-          }										//-------------------------------------------------------------------------------------------------------Nx2N   end----------------
-		  
-		  if (doNotBlockPu)//- && (CUResetPart == 0 || CUTargetMode[TempCount] == 1)------------------------------------------------------------------2NxN   1------------------
+          }
+          if(doNotBlockPu)
           {
-			  if (CUResetPart == 0)
-			  {
-				  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_2NxN DEBUG_STRING_PASS_INTO(sDebug));  //修改3 屏蔽2NxN模式
-				  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-				  if (m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxN)
-				  {
-					  doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-				  }
+			  if(CUResetPart == 0||CUTargetMode[TempCount] == 1){
+				xCheckRDCostInter      ( rpcBestCU, rpcTempCU, SIZE_2NxN DEBUG_STRING_PASS_INTO(sDebug)  );
+				rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
+				if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxN)
+				{
+				  doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+				}
 			  }
-			  else if (CUTargetMode[TempCount] == 1)
-			  {
-				  //printf("===================== SetPartMode==1  ========= %d\n", TempCount);
-				  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_2NxN DEBUG_STRING_PASS_INTO(sDebug));
-				  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-				  if (m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxN)
-				  {
-					  doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-				  }
-				  //printf("===================== SetPartMode==1  done ========= %d\n", TempCount);
-			  }
-			  else
-			  {
-				  //printf("============SetPart is NOT 1==============%d\n", TempCount);
-			  }
-          }										//-------------------------------------------------------------------------------------------------------2NxN   end------------------
+          }
 
           //! Try AMP (SIZE_2NxnU, SIZE_2NxnD, SIZE_nLx2N, SIZE_nRx2N)
-
           if(sps.getUseAMP() && uiDepth < sps.getLog2DiffMaxMinCodingBlockSize() )
           {
 #if AMP_ENC_SPEEDUP
@@ -2065,224 +2253,101 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const 
             deriveTestModeAMP (rpcBestCU, eParentPartSize, bTestAMP_Hor, bTestAMP_Ver);
 #endif
 
-            //! Do horizontal AMP          --------------------------------------------------------------------------------------------------2NxnU   4---------------
-			if (bTestAMP_Hor || (CUResetPart == 1 && CUTargetMode[TempCount]>3))
+            //! Do horizontal AMP
+            if ( bTestAMP_Hor || (CUResetPart == 1 && CUTargetMode[TempCount]>3))
             {
-				if (doNotBlockPu)//&& (CUResetPart == 0 || CUTargetMode[TempCount] == 4)
-				{
-					if (CUResetPart == 0)
-					{
-						xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_2NxnU DEBUG_STRING_PASS_INTO(sDebug));
-						rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-						if (m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnU)
-						{
-							doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-						}
-					}
-					else if (CUTargetMode[TempCount] == 4)
-					{
-						//printf("===================== SetPartMode==4  ========= %d\n", TempCount);
-						xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_2NxnU DEBUG_STRING_PASS_INTO(sDebug));
-						rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-						if (m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnU)
-						{
-							doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-						}
-						//printf("===================== SetPartMode==4 --done ========= %d\n", TempCount);
-					}
-					else
-					{
-						//printf("============SetPart is NOT 4==============%d\n", TempCount);
-					}
-				}
-				if (doNotBlockPu)//&& (CUResetPart == 0 || CUTargetMode[TempCount] == 5)
+              if(doNotBlockPu)
               {
-				  if (CUResetPart == 0)
-				  {
-					  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_2NxnD DEBUG_STRING_PASS_INTO(sDebug));//-----------------------------------------2NxnD   5----------------
-					  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-					  if (m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnD)
-					  {
-						  doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-					  }
+				  if(CUResetPart == 0||CUTargetMode[TempCount] == 4){
+					xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU DEBUG_STRING_PASS_INTO(sDebug) );
+					rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
+					if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnU )
+					{
+					  doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+					}
 				  }
-				  else if (CUTargetMode[TempCount] == 5)
-				  {
-					  //printf("===================== SetPartMode==5  ========= %d\n", TempCount);
-					  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_2NxnD DEBUG_STRING_PASS_INTO(sDebug));//-----------------------------------------2NxnD   5----------------
-					  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-					  if (m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnD)
-					  {
-						  doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-					  }
-					  //printf("===================== SetPartMode==5 --done ========= %d\n", TempCount);
-				  }
-				  else
-				  {
-					  //printf("============SetPart is NOT 5==============%d\n", TempCount);
+              }
+              if(doNotBlockPu)
+              {
+				  if(CUResetPart == 0||CUTargetMode[TempCount] == 5){
+					xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD DEBUG_STRING_PASS_INTO(sDebug) );
+					rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
+					if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnD )
+					{
+					  doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+					}
 				  }
               }
             }
 #if AMP_MRG
-			if (bTestMergeAMP_Hor || (CUResetPart == 1 && CUTargetMode[TempCount]>3))		//-esle-----------------------------------------------------------------------------------------2NxnU   4-----------------------
+            else if ( bTestMergeAMP_Hor|| (CUResetPart == 1 && CUTargetMode[TempCount]>3) )
             {
-				if (doNotBlockPu)//&& (CUResetPart == 0 || CUTargetMode[TempCount] == 4)
+              if(doNotBlockPu)
               {
-				  if (CUResetPart == 0)
-				  {
-					  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_2NxnU DEBUG_STRING_PASS_INTO(sDebug), true);
-					  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-					  if (m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnU)
-					  {
-						  doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-					  }
-				  }
-				  else if (CUTargetMode[TempCount] == 4)
-				  {
-					  //printf("===================== SetPartMode==4  ========= %d\n", TempCount);
-					  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_2NxnU DEBUG_STRING_PASS_INTO(sDebug), true);
-					  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-					  if (m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnU)
-					  {
-						  doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-					  }
-					  //printf("===================== SetPartMode==4 --done ========= %d\n", TempCount);
-				  }
-				  else
-				  {
-					  //printf("============SetPart is NOT 4==============%d\n", TempCount);
+				  if(CUResetPart == 0||CUTargetMode[TempCount] == 4){
+					xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnU DEBUG_STRING_PASS_INTO(sDebug), true );
+					rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
+					if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnU )
+					{
+					  doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+					}
 				  }
               }
-				if (doNotBlockPu)// && (CUResetPart == 0 || CUTargetMode[TempCount] == 5)----------------------------------------------2NxnU   5-----------------------
+              if(doNotBlockPu)
               {
-				  if (CUResetPart == 0)
-				  {
-					  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_2NxnD DEBUG_STRING_PASS_INTO(sDebug), true);
-					  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-					  if (m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnD)
-					  {
-						  doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-					  }
-				  }
-				  else if (CUTargetMode[TempCount] == 5)
-				  {
-					  //printf("===================== SetPartMode==5  ========= %d\n", TempCount);
-					  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_2NxnD DEBUG_STRING_PASS_INTO(sDebug), true);
-					  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-					  if (m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnD)
-					  {
-						  doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-					  }
-					  //printf("===================== SetPartMode==5 --done ========= %d\n", TempCount);
-				  }
-				  else
-				  {
-					  //printf("============SetPart is NOT 5==============%d\n", TempCount);
+				  if(CUResetPart == 0||CUTargetMode[TempCount] == 5){
+					xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_2NxnD DEBUG_STRING_PASS_INTO(sDebug), true );
+					rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
+					if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_2NxnD )
+					{
+					  doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+					}
 				  }
               }
             }
 #endif
 
-            //! Do horizontal AMP	------------------------------------------------------------------------------------------------------nLx2N   6-----------------------------
-			if (bTestAMP_Ver || (CUResetPart == 1 && CUTargetMode[TempCount]>3))
+            //! Do horizontal AMP
+            if ( bTestAMP_Ver || (CUResetPart == 1 && CUTargetMode[TempCount]>3))
             {
-				if (doNotBlockPu)// && (CUResetPart == 0 || CUTargetMode[TempCount] == 6)
+              if(doNotBlockPu)
               {
-				  if (CUResetPart == 0)
-				  {
-					  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_nLx2N DEBUG_STRING_PASS_INTO(sDebug));
-					  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-					  if (m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_nLx2N)
-					  {
-						  doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-					  }
-				  }
-				  else if (CUTargetMode[TempCount] == 6)
-				  {
-					  //printf("===================== SetPartMode==6  ========= %d\n", TempCount);
-					  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_nLx2N DEBUG_STRING_PASS_INTO(sDebug));
-					  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-					  if (m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_nLx2N)
-					  {
-						  doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-					  }
-					  //printf("===================== SetPartMode==6 --done ========= %d\n", TempCount);
-				  }
-				  else
-				  {
-					  //printf("============SetPart is NOT 6==============%d\n", TempCount);
-				  }
+				   if(CUResetPart == 0||CUTargetMode[TempCount] == 6){
+					xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N DEBUG_STRING_PASS_INTO(sDebug) );
+					rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
+					if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_nLx2N )
+					{
+					  doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+					}
+				   }
               }
-				if (doNotBlockPu)// && (CUResetPart == 0 || CUTargetMode[TempCount] == 7)-------------------------------------------------nRx2N   7---------------------------------
+              if(doNotBlockPu)
               {
-				  if (CUResetPart == 0)
-				  {
-					  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_nRx2N DEBUG_STRING_PASS_INTO(sDebug));
-					  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
+				   if(CUResetPart == 0||CUTargetMode[TempCount] == 7){
+					xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N DEBUG_STRING_PASS_INTO(sDebug) );
+					rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
 				  }
-				  else if (CUTargetMode[TempCount] == 7)
-				  {
-					  //printf("===================== SetPartMode==7  ========= %d\n", TempCount);
-					  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_nRx2N DEBUG_STRING_PASS_INTO(sDebug));
-					  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-					  //printf("===================== SetPartMode==7 --done ========= %d\n", TempCount);
-				  }
-				  else
-				  {
-					  //printf("============SetPart is NOT 7==============%d\n", TempCount);
-				  }
-              }
+			  }
             }
 #if AMP_MRG
-			if (bTestMergeAMP_Ver || (CUResetPart == 1 && CUTargetMode[TempCount]>3))		//else---------------------------------------------------------------------------------------nLx2N   6-----------------------------
+            else if ( bTestMergeAMP_Ver || (CUResetPart == 1 && CUTargetMode[TempCount]>3))
             {
-				if (doNotBlockPu)// && (CUResetPart == 0 || CUTargetMode[TempCount] == 6)
+              if(doNotBlockPu)
               {
-				  if (CUResetPart == 0)
-				  {
-					  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_nLx2N DEBUG_STRING_PASS_INTO(sDebug), true);
-					  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-					  if (m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_nLx2N)
-					  {
-						  doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-					  }
-				  }
-				  else if (CUTargetMode[TempCount] == 6)
-				  {
-					  //printf("===================== SetPartMode==6  ========= %d\n", TempCount);
-					  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_nLx2N DEBUG_STRING_PASS_INTO(sDebug), true);
-					  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-					  if (m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_nLx2N)
-					  {
-						  doNotBlockPu = rpcBestCU->getQtRootCbf(0) != 0;
-					  }
-					  //printf("===================== SetPartMode==6 --done ========= %d\n", TempCount);
-				  }
-				  else
-				  {
-					  //printf("============SetPart is NOT 6==============%d\n", TempCount);
+				  if(CUResetPart == 0||CUTargetMode[TempCount] == 6){
+					xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nLx2N DEBUG_STRING_PASS_INTO(sDebug), true );
+					rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
+					if(m_pcEncCfg->getUseCbfFastMode() && rpcBestCU->getPartitionSize(0) == SIZE_nLx2N )
+					{
+					  doNotBlockPu = rpcBestCU->getQtRootCbf( 0 ) != 0;
+					}
 				  }
               }
-				if (doNotBlockPu)//- && (CUResetPart == 0 || CUTargetMode[TempCount] == 7)---------------------------------------------nRx2N   7---------------------------------
+              if(doNotBlockPu)
               {
-				  if (CUResetPart == 0)
-				  {
-					  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_nRx2N DEBUG_STRING_PASS_INTO(sDebug), true);
-					  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-				  }
-				  else if (CUTargetMode[TempCount] == 7)
-				  {
-					  //printf("===================== SetPartMode==7  ========= %d\n", TempCount);
-					  if (CUResetPart == 0)
-					  {
-						  xCheckRDCostInter(rpcBestCU, rpcTempCU, SIZE_nRx2N DEBUG_STRING_PASS_INTO(sDebug), true);
-						  rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-					  }
-					  //printf("===================== SetPartMode==7 --done ========= %d\n", TempCount);
-				  }
-				  else
-				  {
-					  //printf("============SetPart is NOT 7==============%d\n", TempCount);
+				  if(CUResetPart == 0||CUTargetMode[TempCount] == 7){
+					xCheckRDCostInter( rpcBestCU, rpcTempCU, SIZE_nRx2N DEBUG_STRING_PASS_INTO(sDebug), true );
+					rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
 				  }
               }
             }
@@ -2312,43 +2377,34 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const 
              ((rpcBestCU->getCbf( 0, COMPONENT_Cr ) != 0) && (numberValidComponents > COMPONENT_Cr))  // avoid very complex intra if it is unlikely
             )))
         {
-			if (CUResetPart == 0)
-			{
-				xCheckRDCostIntra(rpcBestCU, rpcTempCU, SIZE_2Nx2N DEBUG_STRING_PASS_INTO(sDebug));
-				rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-				if (uiDepth == sps.getLog2DiffMaxMinCodingBlockSize())
+			if(CUResetPart==0){
+			  xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_2Nx2N DEBUG_STRING_PASS_INTO(sDebug) );
+			  rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
+			  if( uiDepth == sps.getLog2DiffMaxMinCodingBlockSize() )
+			  {
+				if( rpcTempCU->getWidth(0) > ( 1 << sps.getQuadtreeTULog2MinSize() ) )
 				{
-					//屏蔽NxN有效
-					if (rpcTempCU->getWidth(0) > (1 << sps.getQuadtreeTULog2MinSize()))
-					{
-						xCheckRDCostIntra(rpcBestCU, rpcTempCU, SIZE_NxN DEBUG_STRING_PASS_INTO(sDebug));//Intra NxN
-						rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-					}
+				  xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_NxN DEBUG_STRING_PASS_INTO(sDebug)   );
+				  rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
 				}
+			  }
 			}
-			else if (CUTargetMode[TempCount] == 0)
-			{
-				xCheckRDCostIntra(rpcBestCU, rpcTempCU, SIZE_2Nx2N DEBUG_STRING_PASS_INTO(sDebug));
-				rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-			}
-			else //(CUTargetMode[TempCount] == 3)
-			{
-				xCheckRDCostIntra(rpcBestCU, rpcTempCU, SIZE_2Nx2N DEBUG_STRING_PASS_INTO(sDebug));
-				rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-				if (uiDepth == sps.getLog2DiffMaxMinCodingBlockSize())
-				{
-					//屏蔽NxN有效
-					if (rpcTempCU->getWidth(0) > (1 << sps.getQuadtreeTULog2MinSize()))
-					{
-						xCheckRDCostIntra(rpcBestCU, rpcTempCU, SIZE_NxN DEBUG_STRING_PASS_INTO(sDebug));//Intra NxN
-						rpcTempCU->initEstData(uiDepth, iQP, bIsLosslessMode);
-					}
-				}
-			}
-          
-
         }
-
+		if(rpcBestCU->getSlice()->getSliceType() != I_SLICE && CUResetPart!=0){
+				if(CUTargetMode[TempCount]==SIZE_2Nx2N){
+					xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_2Nx2N DEBUG_STRING_PASS_INTO(sDebug) );
+					 rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );
+				}
+				if( uiDepth == sps.getLog2DiffMaxMinCodingBlockSize() )
+				  {
+					if( rpcTempCU->getWidth(0) > ( 1 << sps.getQuadtreeTULog2MinSize() ) )
+					{
+						if(CUTargetMode[TempCount]==SIZE_NxN){
+					  xCheckRDCostIntra( rpcBestCU, rpcTempCU, SIZE_NxN DEBUG_STRING_PASS_INTO(sDebug)   );
+					  rpcTempCU->initEstData( uiDepth, iQP, bIsLosslessMode );}
+					}
+				  }
+			}
         // test PCM
         if(sps.getUsePCM()
           && rpcTempCU->getWidth(0) <= (1<<sps.getPCMLog2MaxSize())
@@ -2367,7 +2423,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const 
         {
           iQP = iMinQP;
         }
-      }//-----------------------------------------------------------------------------------------------------------------------------------------------end for--------------
+      }
     }
 
     if( rpcBestCU->getTotalCost()!=MAX_DOUBLE )
@@ -2380,7 +2436,7 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const 
       rpcBestCU->getTotalCost()  = m_pcRdCost->calcRdCost( rpcBestCU->getTotalBits(), rpcBestCU->getTotalDistortion() );
       m_pcRDGoOnSbacCoder->store(m_pppcRDSbacCoder[uiDepth][CI_NEXT_BEST]);
     }
-  }//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+  }
 
   // copy original YUV samples to PCM buffer
   if( rpcBestCU->getTotalCost()!=MAX_DOUBLE && rpcBestCU->isLosslessCoded(0) && (rpcBestCU->getIPCMFlag(0) == false))
@@ -2459,17 +2515,15 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const 
 
 #if AMP_ENC_SPEEDUP
           DEBUG_STRING_NEW(sChild)
+          if ( !(rpcBestCU->getTotalCost()!=MAX_DOUBLE && rpcBestCU->isInter(0)) )
+          {
+            xCompressCU( pcSubBestPartCU, pcSubTempPartCU, uhNextDepth DEBUG_STRING_PASS_INTO(sChild), NUMBER_OF_PART_SIZES );
+          }
+          else
+          {
 
-			  if (!(rpcBestCU->getTotalCost() != MAX_DOUBLE && rpcBestCU->isInter(0)))
-			  {
-				  xCompressCU(pcSubBestPartCU, pcSubTempPartCU, uhNextDepth DEBUG_STRING_PASS_INTO(sChild), NUMBER_OF_PART_SIZES);
-			  }
-			  else
-			  {
-
-				  xCompressCU(pcSubBestPartCU, pcSubTempPartCU, uhNextDepth DEBUG_STRING_PASS_INTO(sChild), rpcBestCU->getPartitionSize(0));
-			  }
-
+            xCompressCU( pcSubBestPartCU, pcSubTempPartCU, uhNextDepth DEBUG_STRING_PASS_INTO(sChild), rpcBestCU->getPartitionSize(0) );
+          }
           DEBUG_STRING_APPEND(sTempDebug, sChild)
 #else
           xCompressCU( pcSubBestPartCU, pcSubTempPartCU, uhNextDepth );
@@ -2568,15 +2622,6 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const 
           rpcBestCU->getTotalCost()=MAX_DOUBLE;
         }
       }
-
-	  //if (CTUIndex == 4)
-	  //{
-		 // //printf("-temp ZIndexInCTU=%d    best ZIndexInCTU=%d          tempCount=%d\n", rpcTempCU->getZorderIdxInCtu()/4, rpcBestCU->getZorderIdxInCtu()/4,TempCount);
-		 // //printf("------->>>Call by ComCU go CheckBestMode--\n");
-
-		 // printf("best width=%d-------%d-------%d,------%d----------CUC=%d\n", rpcBestCU->getWidth(0), rpcBestCU->getWidth(1), rpcBestCU->getWidth(2), rpcBestCU->getWidth(3), TempCount);
-
-	  //}
 	  if (CUResetPart == 0)//如果Reset标志位为False，那么是第一次执行，需要运行。如果Reset标志为True，且该CU有指定的划分类型，那么不需要继续运行。如果没有，需要运行。
 	  {
 		  //printf("------RD compare current larger prediction with sub---------\n");
@@ -2592,27 +2637,31 @@ Void TEncCu::xCompressCU( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, const 
 	  {
 		  //printf("No Need To Check%d\n", TempCount);
 	  }
-	  //if (CTUIndex == 4)
-	  //{
-		 // //printf("-temp ZIndexInCTU=%d    best ZIndexInCTU=%d          tempCount=%d\n", rpcTempCU->getZorderIdxInCtu()/4, rpcBestCU->getZorderIdxInCtu()/4,TempCount);
-		 // //printf("------->>>Call by ComCU go CheckBestMode--\n");
-
-		 // printf("best width=%d-------%d-------%d,------%d----------CUC=%d\n", rpcBestCU->getWidth(0), rpcBestCU->getWidth(1), rpcBestCU->getWidth(2), rpcBestCU->getWidth(3), TempCount);
-
-	  //}
-
-
+      //xCheckBestMode( rpcBestCU, rpcTempCU, uiDepth DEBUG_STRING_PASS_INTO(sDebug) DEBUG_STRING_PASS_INTO(sTempDebug) DEBUG_STRING_PASS_INTO(false) ); // RD compare current larger prediction
+     //  if(( CUResetPart == 0))	  printf("%d============Nx2N ==============%d %d %d\n", rpcBestCU->getWidth(0),rpcBestCU->getPartitionSize(0),TempCount,CUTargetMode[TempCount]);                                                                                                                                                // with sub partitioned prediction.
     }
+  }
 
-	//可以在下面保存CU最终结果
+  //可以在下面保存CU最终结果
 	if (rpcBestCU->getSlice()->getSliceType() != I_SLICE)//PocIndex==6
 	{
 		CUDepth[TempCount] += (int)rpcBestCU->getDepth(0);
-
+		//  printf("============TempCount==============%d \n", TempCount);
 		CUPartSize[TempCount] = rpcBestCU->getPartitionSize(0);
+		//cout<<"CUPartSize["<<TempCount<<"]="<<CUPartSize[TempCount]<<endl;
+		//if(( CUResetPart != 0))	  printf("%d============Nx2N ==============%d %d %d\n", rpcBestCU->getWidth(0),rpcBestCU->getPartitionSize(0),TempCount,CUTargetMode[TempCount]);
 	}
 
-  }
+	//*****************
+
+
+
+	//*****************
+
+
+
+
+
 
   DEBUG_STRING_APPEND(sDebug_, sDebug);
 
@@ -3000,10 +3049,6 @@ Void TEncCu::xCheckRDCostMerge2Nx2N( TComDataCU*& rpcBestCU, TComDataCU*& rpcTem
 
           Int orgQP = rpcTempCU->getQP( 0 );
           xCheckDQP( rpcTempCU );
-
-		 // if (CTUIndex == 4)
-			//printf("--->>Call by xCheckRDCostMerge2Nx2N go CBM--\n");
-
           xCheckBestMode(rpcBestCU, rpcTempCU, uhDepth DEBUG_STRING_PASS_INTO(bestStr) DEBUG_STRING_PASS_INTO(tmpStr));
 
           rpcTempCU->initEstData( uhDepth, orgQP, bTransquantBypassFlag );
@@ -3056,13 +3101,7 @@ Void TEncCu::xCheckRDCostInter( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
 Void TEncCu::xCheckRDCostInter( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, PartSize ePartSize )
 #endif
 {
-	DEBUG_STRING_NEW(sTest)
-
-
-	//if (CTUIndex == 4)
-	//{
-	//	printf("\n xCheckRDCostInter:	PartSize=%d\n\n;",ePartSize);
-	//}
+  DEBUG_STRING_NEW(sTest)
 
   if(getFastDeltaQp())
   {
@@ -3103,10 +3142,6 @@ Void TEncCu::xCheckRDCostInter( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, 
 #endif
 
   xCheckDQP( rpcTempCU );
-
- // if (CTUIndex == 4)
-	//printf("--->>Call by xCheckRDCostInter go CBM--\n");
-
   xCheckBestMode(rpcBestCU, rpcTempCU, uhDepth DEBUG_STRING_PASS_INTO(sDebug) DEBUG_STRING_PASS_INTO(sTest));
 }
 
@@ -3116,11 +3151,6 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU *&rpcBestCU,
                                 DEBUG_STRING_FN_DECLARE(sDebug) )
 {
   DEBUG_STRING_NEW(sTest)
-
-  //if (CTUIndex == 4)
-  //{
-	 // printf("\n xCheckRDCostInra:	PartSize=%d\n\n", eSize);
-  //}
 
   if(getFastDeltaQp())
   {
@@ -3178,9 +3208,6 @@ Void TEncCu::xCheckRDCostIntra( TComDataCU *&rpcBestCU,
   rpcTempCU->getTotalCost() = m_pcRdCost->calcRdCost( rpcTempCU->getTotalBits(), rpcTempCU->getTotalDistortion() );
 
   xCheckDQP( rpcTempCU );
-
- // if (CTUIndex == 4)
-	//printf("--->>Call by xCheckRDCostIntra go CBM--\n");
 
   xCheckBestMode(rpcBestCU, rpcTempCU, uiDepth DEBUG_STRING_PASS_INTO(sDebug) DEBUG_STRING_PASS_INTO(sTest));
 }
@@ -3241,10 +3268,6 @@ Void TEncCu::xCheckIntraPCM( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
   xCheckDQP( rpcTempCU );
   DEBUG_STRING_NEW(a)
   DEBUG_STRING_NEW(b)
-
- // if (CTUIndex == 4)
-	//printf("--->>Call by xCheckIntraPCM go CBM--\n");
-
   xCheckBestMode(rpcBestCU, rpcTempCU, uiDepth DEBUG_STRING_PASS_INTO(a) DEBUG_STRING_PASS_INTO(b));
 }
 
@@ -3253,25 +3276,9 @@ Void TEncCu::xCheckIntraPCM( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU )
  * \param rpcTempCU
  * \param uiDepth
  */
-int bestcount = 0;
 Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UInt uiDepth DEBUG_STRING_FN_DECLARE(sParent) DEBUG_STRING_FN_DECLARE(sTest) DEBUG_STRING_PASS_INTO(Bool bAddSizeInfo) )
 {
-
-	//if (CTUIndex == 4)
-	//{
-	//	bestcount++;
-	//	if (rpcBestCU->getTotalCost() > 10000000000)
-	//	{
-	//		printf("-------xCheckBestMode:TempCost:%5.1f\tBestCost:Non  \tDepth:%d bestcount=%d\n", rpcTempCU->getTotalCost(), uiDepth, bestcount);
-	//	}
-	//	else
-	//	{
-	//		printf("-------xCheckBestMode:TempCost:%5.1f\tBestCost:%5.1f\tDepth:%d bestcount=%d\n", rpcTempCU->getTotalCost(), rpcBestCU->getTotalCost(), uiDepth, bestcount);
-	//	}
-	//	
-	//}
-
-  if( rpcTempCU->getTotalCost() < rpcBestCU->getTotalCost() )//Double 类型的数据
+  if( rpcTempCU->getTotalCost() < rpcBestCU->getTotalCost() )
   {
     TComYuv* pcYuv;
     // Change Information data
@@ -3307,8 +3314,6 @@ Void TEncCu::xCheckBestMode( TComDataCU*& rpcBestCU, TComDataCU*& rpcTempCU, UIn
     }
 #endif
   }
-
-
 }
 
 Void TEncCu::xCheckDQP( TComDataCU* pcCU )

@@ -79,6 +79,16 @@ extern int TOTAL_64;
 int find_flag = 0; //用来嵌信息的
 int EMD_SUM = 0; // 判断目前的EMD SUM
 int aim_bit =0; //EMD待嵌入信息
+int n = 0;//每次处理的数
+int p = 3;//进制
+int c; 
+int m = 0; //ThNum指针
+int ThNum[100] = {25}; //存储最终三进制数，20则是未定义
+char MessStr[100] = {0}; //存储读到的Message字符串 
+int MessageFlag = 0;//记录之前有没有读过Message
+   
+
+    
 
 extern int CurrentPOC;
 
@@ -343,6 +353,68 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
   CUnum_32=0;
   CUnum_64=0;
 
+  //以下读隐藏信息----------------------//
+  if(!MessageFlag ){
+	  MessageFlag = 1;
+	   ifstream  afile;
+
+	afile.open("Message.txt");
+
+   
+   afile >> MessStr;           //遇到空格输出停止，空格后的内容无法输出，'\0'是截止符，如图3所示
+
+   cout << MessStr << endl;
+
+   afile .close();
+
+   int TotalNum = 0;
+
+   while(MessStr[TotalNum++]){
+   }
+
+   for(int i = 0; i<TotalNum-1;i++)
+   {
+
+	  n = (int)MessStr[i];
+	  printf("\nn = %d\n",n);
+
+	  int mlast = m;
+	  while(n){
+	    c=n%p;
+		n=n/p;
+		m++;
+		ThNum[m]=c;  
+		printf("%d",c); 
+	  }
+
+	  int gap = 5-(m-mlast);
+	  for (int loop = 0; loop<gap;loop++)
+		  ThNum[++m] = 0;
+
+   }
+
+   // n是总字符数量,放在ThNum数组最后5位，m到m-1
+   n = 0;
+   for(int i =0;MessStr[i]!=0;i++){
+	   n++;
+   }
+	  printf("\nn = %d\n",n);
+
+	  int mlast = m;
+	  while(n){
+	    c=n%p;
+		n=n/p;
+		m++;
+		ThNum[m]=c;  
+		printf("%d",c); 
+	  }
+
+	  int gap = 5-(m-mlast);
+	  for (int loop = 0; loop<gap;loop++)
+		  ThNum[++m] = 0;
+  }
+  //以上读隐藏信息----------------------//
+
 
   //初始化
   if (pCtu->getSlice()->getSliceType() != I_SLICE)
@@ -366,28 +438,6 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
   ChangeFlag = 0;
   // analysis of CU
   DEBUG_STRING_NEW(sDebug)
-
-
-	  	  ///////// test zzz begin  ///////
-	  /*printf("CUPartSize:\n");
-	  for (int i=0;i<85;i++)
-	  {
-
-		  if((i+1)%5==0)
-			  printf("\n");
-		  printf("%5d",CUPartSize[i]);
-	  }
-
-	  printf("CUTargetMode:\n");
-	  for (int i=0;i<85;i++)
-	  {
-
-		  if((i+1)%5==0)
-			  printf("\n");
-		  printf("%5d",CUTargetMode[i]);
-	  }*/
-	  ///////// test zzz end  ///////
-  
 
 
 
@@ -1277,16 +1327,18 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
 /*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 32x32<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
 
  /*>>>>>>>>>>>>>>>>>>>>>>以下为lzh 8X8 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
-	  if(CUnum_8>2  && 0) //如果一个CTU的8X8个数,屏蔽这个if就屏蔽了lzh的算法 8X8开关
+
+	  if(CUnum_8>2 &&1) //如果一个CTU的8X8个数,屏蔽这个if就屏蔽了lzh的算法 8X8开关
 	  {
 		  ChangeFlag =1;
 		for(ii =0;ii<CUnum_8;ii++) //ii指的是8X8  的target
 		  {
 			 //1维 N=1
-
 			  //cout<<"CUTargetMode[EMD_8_CUTargetMode[ii]]="<<CUTargetMode[EMD_8_CUTargetMode[ii]]<<endl;
-
-			  randnum = rand() % 3;  //2N+1 ，randnum为待嵌入信息
+			  cout<<ThNum[m]<<" m="<<m<<endl;
+			  randnum = 0;//ThNum[m--];  //2N+1 ，randnum为待嵌入信息
+			  
+			 // randnum = rand() % 3;  //2N+1 ，randnum为待嵌入信息
 			  Capacity += 1.6 ;//2.8=log2(7)
 			  aim_bit = rand() % 2;
 			  switch(randnum)
@@ -1294,20 +1346,24 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
 				  case 0:
 					if( aim_bit == 0 )
 					{
-						CUTargetMode[EMD_8_CUTargetMode[ii]] = 0 ; //2NX2N
+						CUTargetMode[EMD_8_CUTargetMode[ii]] = 0 ; //2NX2N 8*8
+						cout<<"8*8 ";
 					}
 					else 
 					{
-						CUTargetMode[EMD_8_CUTargetMode[ii]] = 3 ; //NXN
+						CUTargetMode[EMD_8_CUTargetMode[ii]] = 3 ; //NXN 4*4
+						cout<<"4*4 ";
 					}
 					break;
 
 				 case 1:
-				   CUTargetMode[EMD_8_CUTargetMode[ii]] = 1 ;				   
+				    CUTargetMode[EMD_8_CUTargetMode[ii]] = 1 ;	//2N*N 8*4	
+					cout<<"8*4";
 					break;
 
 				 case 2:
-					CUTargetMode[EMD_8_CUTargetMode[ii]] = 2 ;				
+					CUTargetMode[EMD_8_CUTargetMode[ii]] = 2 ;	//N*2N 4*8		
+					cout<<"4*8 ";
 					break;
 				
 		    }

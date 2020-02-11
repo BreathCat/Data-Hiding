@@ -325,6 +325,14 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
   m_ppcBestCU[0]->initCtu( pCtu->getPic(), pCtu->getCtuRsAddr() );
   m_ppcTempCU[0]->initCtu( pCtu->getPic(), pCtu->getCtuRsAddr() );
 
+
+    /*******************————隐写分析算法原理——————————*****
+  隐写分析算法原理：将所有可能的CU从0到84编号。原始的HEVC压缩PU划分模式储存在CUPartSize数组，
+  初始值全为0，我们再建立CUTargetMode数组，通过CUDepth数组判断，将CU实际划分的PU模式精准的赋值给
+  CUTargetmMode。并且这些只有关64*64CTU的。边边角角的不规则CTU不经过这两个数组。CUDpet读法请看
+  定义时的注释。
+  
+  ****************************************/
     //累计CTUIndex   ---by emd
   int i = 0;
   int j = 0;
@@ -354,65 +362,64 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
   CUnum_64=0;
 
   //以下读隐藏信息----------------------//
-  if(!MessageFlag ){
-	  MessageFlag = 1;
-	   ifstream  afile;
+ // if(!MessageFlag ){
+	//  MessageFlag = 1;
+	//   ifstream  afile;
 
-	afile.open("Message.txt");
+	//afile.open("Message.txt");
 
-   
-   afile >> MessStr;           //遇到空格输出停止，空格后的内容无法输出，'\0'是截止符，如图3所示
+ //  
+ //  afile >> MessStr;           //遇到空格输出停止，空格后的内容无法输出，'\0'是截止符，如图3所示
 
-   cout << MessStr << endl;
+ //  cout << MessStr << endl;
 
-   afile .close();
+ //  afile .close();
 
-   int TotalNum = 0;
+ //  int TotalNum = 0;
 
-   while(MessStr[TotalNum++]){
-   }
+ //  while(MessStr[TotalNum++]){
+ //  }
 
-   for(int i = 0; i<TotalNum-1;i++)
-   {
+ //  for(int i = 0; i<TotalNum-1;i++)
+ //  {
 
-	  n = (int)MessStr[i];
-	  printf("\nn = %d\n",n);
+	//  n = (int)MessStr[i];
+	//  printf("\nn = %d\n",n);
 
-	  int mlast = m;
-	  while(n){
-	    c=n%p;
-		n=n/p;
-		m++;
-		ThNum[m]=c;  
-		printf("%d",c); 
-	  }
+	//  int mlast = m;
+	//  while(n){
+	//    c=n%p;
+	//	n=n/p;
+	//	m++;
+	//	ThNum[m]=c;  
+	//	printf("%d",c); 
+	//  }
+  	//  int gap = 5-(m-mlast);
+	//  for (int loop = 0; loop<gap;loop++)
+	//	  ThNum[++m] = 0;
 
-	  int gap = 5-(m-mlast);
-	  for (int loop = 0; loop<gap;loop++)
-		  ThNum[++m] = 0;
+ //  }
 
-   }
+ //  // n是总字符数量,放在ThNum数组最后5位，m到m-1
+ //  n = 0;
+ //  for(int i =0;MessStr[i]!=0;i++){
+	//   n++;
+ //  }
+	//  printf("\nn = %d\n",n);
 
-   // n是总字符数量,放在ThNum数组最后5位，m到m-1
-   n = 0;
-   for(int i =0;MessStr[i]!=0;i++){
-	   n++;
-   }
-	  printf("\nn = %d\n",n);
+	//  int mlast = m;
+	//  while(n){
+	//    c=n%p;
+	//	n=n/p;
+	//	m++;
+	//	ThNum[m]=c;  
+	//	printf("%d",c); 
+	//  }
 
-	  int mlast = m;
-	  while(n){
-	    c=n%p;
-		n=n/p;
-		m++;
-		ThNum[m]=c;  
-		printf("%d",c); 
-	  }
-
-	  int gap = 5-(m-mlast);
-	  for (int loop = 0; loop<gap;loop++)
-		  ThNum[++m] = 0;
-  }
+	//  int gap = 5-(m-mlast);
+	//  for (int loop = 0; loop<gap;loop++)
+	//	  ThNum[++m] = 0;
+ // }
   //以上读隐藏信息----------------------//
 
 
@@ -432,6 +439,11 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
 		  CUTargetMode[i] = 1;//默认都为1+++7
 	  }
 	}
+
+
+
+
+
 
   //第一次压缩，标志位为0
   CUResetPart = 0;
@@ -1122,6 +1134,7 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
 
 // 复制emd代码--开始 *************
 
+	
 	  if (CUDepth[0] != 0 )//被划分 CUTargetMode[0] = 255; 判断是不是64
 	  {
 		  CUTargetMode[0] = 255;
@@ -1141,7 +1154,7 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
 				  {					  
 					  if (CUDepth[i] == 22)   //        划分成了16x16
 					  {
-						    CUTargetMode[i] = CUPartSize[i]; //将PU6当成PU1来修改
+						    CUTargetMode[i] = CUPartSize[i]; 
 						    EMD_16_CUTargetMode[CUnum_16]=i; 
 						    CUnum_16++; 			
 							TOTAL_16++;
@@ -1154,7 +1167,6 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
 						  {
 							CUTargetMode[i + n] = CUPartSize[i + n];//是不是应该加上这句话？ --刘金豆
 							//cout<<"CUPartSize[i + n]="<<CUPartSize[i + n]<<endl;//--ljd
-
 							EMD_8_CUTargetMode[CUnum_8]=i+n; 
 						    CUnum_8++; 
 
@@ -1328,14 +1340,14 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
 
  /*>>>>>>>>>>>>>>>>>>>>>>以下为lzh 8X8 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
 
-	  if(CUnum_8>2 &&1) //如果一个CTU的8X8个数,屏蔽这个if就屏蔽了lzh的算法 8X8开关
+	  if(CUnum_8 &&1) //如果一个CTU的8X8个数,屏蔽这个if就屏蔽了lzh的算法 8X8开关
 	  {
 		  ChangeFlag =1;
 		for(ii =0;ii<CUnum_8;ii++) //ii指的是8X8  的target
 		  {
 			 //1维 N=1
 			  //cout<<"CUTargetMode[EMD_8_CUTargetMode[ii]]="<<CUTargetMode[EMD_8_CUTargetMode[ii]]<<endl;
-			  cout<<ThNum[m]<<" m="<<m<<endl;
+			//  cout<<ThNum[m]<<" m="<<m<<endl;
 			  randnum = 0;//ThNum[m--];  //2N+1 ，randnum为待嵌入信息
 			  
 			 // randnum = rand() % 3;  //2N+1 ，randnum为待嵌入信息
@@ -1347,23 +1359,23 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
 					if( aim_bit == 0 )
 					{
 						CUTargetMode[EMD_8_CUTargetMode[ii]] = 0 ; //2NX2N 8*8
-						cout<<"8*8 ";
+				//		cout<<"8*8 ";
 					}
 					else 
 					{
 						CUTargetMode[EMD_8_CUTargetMode[ii]] = 3 ; //NXN 4*4
-						cout<<"4*4 ";
+				//		cout<<"4*4 ";
 					}
 					break;
 
 				 case 1:
 				    CUTargetMode[EMD_8_CUTargetMode[ii]] = 1 ;	//2N*N 8*4	
-					cout<<"8*4";
+			//		cout<<"8*4";
 					break;
 
 				 case 2:
 					CUTargetMode[EMD_8_CUTargetMode[ii]] = 2 ;	//N*2N 4*8		
-					cout<<"4*8 ";
+			//		cout<<"4*8 ";
 					break;
 				
 		    }
@@ -1423,11 +1435,31 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
         }
     }
 /*>>>>>>>>>>>>>>>>>>>>>>以上为 lzh 64x64 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<信息隐藏算法*/
-
+	 cout<<"\nCUDepth is\n";
+	  for(int i =0;i<85;i++){
+			  cout<<CUDepth[i]<<" ";
+			  if(i%21==0){
+				  cout<<"\n";
+			  }
+		  }
+	 cout<<"\nCUTargetMode is\n"; 
+	 for(int i =0;i<85;i++){
+			  cout<<CUTargetMode[i]<<" ";
+			  if(i%21==0){
+				  cout<<"\n";
+			  }
+		  }
+	 cout<<"\nPUPartSize is\n";
+	 for(int i =0;i<85;i++){
+			  cout<<CUPartSize[i]<<" ";
+			  if(i%21==0){
+				  cout<<"\n";
+			  }
+		  }
+		
  }
 
-
-
+ 
 // 复制emd代码--结束 *************
 
   if( CUComCount>84 && pCtu->getSlice()->getSliceType() != I_SLICE)
@@ -1436,6 +1468,7 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
 	  {
 		  isorg = 0;
 		  countC(CUTargetMode);
+		  
 	  }
 	  else
 	  {

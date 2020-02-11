@@ -1,4 +1,4 @@
-/* The copyright in this software is being made available under the BSD
+﻿/* The copyright in this software is being made available under the BSD
  * License, included below. This software may be subject to other third party
  * and contributor rights, including patent rights, and no such rights are
  * granted under this license.
@@ -40,6 +40,9 @@
 #include "TComPic.h"
 #include "TComTU.h"
 
+//C:\Users\45452\OneDrive\科研\HEVC_提取PU\HM-16.15-YUN\source\Lib\TLibCommon\TComPic.h
+//#include "C:\Users\45452\OneDrive\科研\HEVC_提取PU\HM-16.15-YUN\source\App\TAppDecoder\def.h"
+#include "..\..\App\TAppDecoder\def.h"
 //! \ingroup TLibCommon
 //! \{
 
@@ -642,6 +645,194 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
 
 Void TComPrediction::xPredInterBlk(const ComponentID compID, TComDataCU *cu, TComPicYuv *refPic, UInt partAddr, TComMv *mv, Int width, Int height, TComYuv *dstPic, Bool bi, const Int bitDepth )
 {
+	if(( *(cu->m_skipFlag)))
+		skip[intra_pre_mode_index]++;
+	else
+		inter[intra_pre_mode_index]++;
+  //////////////////////////////////统ª3计?帧?内¨²PU类¤¨¤型¨ª
+	/*width*height
+	4*4----------------0
+	8*8----------------1
+	8*4----------------2
+	4*8----------------3
+	16*16---------------4
+	16*8----------------5
+	8*16----------------6
+	16*4----------------7
+	4*16----------------8
+	16*12----------------9
+	12*16----------------10
+	32*32----------------11
+	32*16----------------12
+	16*32----------------13
+	32*24----------------14
+	24*32----------------15
+	32*8----------------16
+	8*32----------------17
+	64*64----------------18
+	64*32----------------19
+	32*64----------------20
+	64*48----------------21
+	48*64----------------22
+	64*16----------------23
+	16*64----------------24
+	*/
+
+	
+	//if(width<height); //????李中浩2020 2.5
+
+
+	if (m<30&&0){//if (m<TotalNum|| m<5){
+
+		if(width==4&&height==4)
+		{
+			ThNum[m]=3;//ThNum[m]=0;
+			m++;
+		}
+		if(width==8&&height==8)
+		{
+			ThNum[m]=4;//ThNum[m]=0;
+			m++;
+		}
+		if(width==8&&height==4)
+		{
+			ThNum[m]=1;
+			m++;
+		}
+		if(width==4&&height==8)
+		{
+			ThNum[m]=2;
+			m++;
+		}
+
+		if(m==4)
+			TotalNum = (81*ThNum[0] + 27*ThNum[1] + 9*ThNum[2] + 3*ThNum[3] + ThNum[4]+1)*5;//1是前5个指示长度的三进制数
+
+		
+		if(m==30){//if(m=TotalNum){
+			printf("\n The ThNum[%d] and %d = is",TotalNum,m);
+
+			for(int i =0;i<m;i++){
+				cout << ThNum[i];
+				if (i%5==4){
+					cout<<" ";
+				}
+			}
+		
+		}
+
+	}//思路:只关注第一个P帧的8*8，数量应该够了。接下来确定顺序没问题，再提取
+
+	if(width==4&&height==4)
+	{
+		P_PU_number[intra_pre_mode_index][0]++;
+	//	if (intra_pre_mode_index)
+		cout<<"4*4 ";
+	}
+	if(width==8&&height==8)
+	{
+		P_PU_number[intra_pre_mode_index][1]++;
+	//	if (intra_pre_mode_index)
+		cout<<"8*8 ";
+	}
+	if(width==8&&height==4)
+	{
+		P_PU_number[intra_pre_mode_index][2]++;
+	//	if (intra_pre_mode_index)
+		cout<<"8*4 ";
+	}
+	if(width==4&&height==8)
+	{
+		P_PU_number[intra_pre_mode_index][3]++;
+	//	if (intra_pre_mode_index)
+		cout<<"4*8 ";
+	}
+	if(width==16&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][4]++;
+	}
+	if(width==16&&height==8)
+	{
+		P_PU_number[intra_pre_mode_index][5]++;
+	}
+	if(width==8&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][6]++;
+	}
+	if(width==16&&height==4)
+	{
+		P_PU_number[intra_pre_mode_index][7]++;
+	}
+	if(width==4&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][8]++;
+	}
+	if(width==16&&height==12)
+	{
+		P_PU_number[intra_pre_mode_index][9]++;
+	}
+	if(width==12&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][10]++;
+	}
+	if(width==32&&height==32)
+	{
+		P_PU_number[intra_pre_mode_index][11]++;
+	}
+	if(width==32&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][12]++;
+	}
+	if(width==16&&height==32)
+	{
+		P_PU_number[intra_pre_mode_index][13]++;
+	}
+	if(width==32&&height==24)
+	{
+		P_PU_number[intra_pre_mode_index][14]++;
+	}
+	if(width==24&&height==32)
+	{
+		P_PU_number[intra_pre_mode_index][15]++;
+	}
+	if(width==32&&height==8)
+	{
+		P_PU_number[intra_pre_mode_index][16]++;
+	}
+	if(width==8&&height==32)
+	{
+		P_PU_number[intra_pre_mode_index][17]++;
+	}
+	if(width==64&&height==64)
+	{
+		P_PU_number[intra_pre_mode_index][18]++;
+	}
+	if(width==64&&height==32)
+	{
+		P_PU_number[intra_pre_mode_index][19]++;
+	}
+	if(width==32&&height==64)
+	{
+		P_PU_number[intra_pre_mode_index][20]++;
+	}
+	if(width==64&&height==48)
+	{
+		P_PU_number[intra_pre_mode_index][21]++;
+	}
+	if(width==48&&height==64)
+	{
+		P_PU_number[intra_pre_mode_index][22]++;
+	}
+	if(width==64&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][23]++;
+	}
+	if(width==16&&height==64)
+	{
+		P_PU_number[intra_pre_mode_index][24]++;
+	}
+	////////////////////////////////
+
   Int     refStride  = refPic->getStride(compID);
   Int     dstStride  = dstPic->getStride(compID);
   Int shiftHor=(2+refPic->getComponentScaleX(compID));

@@ -63,6 +63,10 @@ static const UInt NUM_MOST_PROBABLE_MODES=3;
 /// CU data structure class
 class TComDataCU
 {
+
+	public:
+	Bool*         m_skipFlag;                             ///< array of skip flags
+	TComSlice*    m_pcSlice;                              ///< slice header pointer
 private:
 
   // -------------------------------------------------------------------------------------------------------------------
@@ -70,7 +74,7 @@ private:
   // -------------------------------------------------------------------------------------------------------------------
 
   TComPic*      m_pcPic;                                ///< picture class pointer
-  TComSlice*    m_pcSlice;                              ///< slice header pointer
+  //TComSlice*    m_pcSlice;                              ///< slice header pointer
 
   // -------------------------------------------------------------------------------------------------------------------
   // CU description
@@ -90,7 +94,7 @@ private:
   // CU data
   // -------------------------------------------------------------------------------------------------------------------
 
-  Bool*         m_skipFlag;                             ///< array of skip flags
+//  Bool*         m_skipFlag;                             ///< array of skip flags
   SChar*        m_pePartSize;                           ///< array of partition sizes
   SChar*        m_pePredMode;                           ///< array of prediction modes
   SChar*        m_crossComponentPredictionAlpha[MAX_NUM_COMPONENT]; ///< array of cross-component prediction alpha values

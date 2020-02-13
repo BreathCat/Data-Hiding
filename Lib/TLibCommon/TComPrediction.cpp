@@ -39,7 +39,40 @@
 #include "TComPrediction.h"
 #include "TComPic.h"
 #include "TComTU.h"
+#include "..\..\App\TAppDecoder\def.h"
 
+//4*4----------------0
+	//8*8----------------1
+	//8*4----------------2
+	//4*8----------------3
+	//16*16---------------4
+	//16*8----------------5
+	//8*16----------------6
+	//16*4----------------7
+	//4*16----------------8
+	//16*12----------------9
+	//12*16----------------10
+	//32*32----------------11
+	//32*16----------------12
+	//16*32----------------13
+	//32*24----------------14
+	//24*32----------------15
+	//32*8----------------16
+	//8*32----------------17
+	//64*64----------------18
+	//64*32----------------19
+	//32*64----------------20
+	//64*48----------------21
+	//48*64----------------22
+	//64*16----------------23
+	//16*64----------------24
+	//*/
+
+extern long I_CU_number[100][4];//自己定义的I帧CU划分统计8*8------------0;16*16------------1;32*32------------2;64*64------------3;
+extern long P_CU_number[100][4];//自己定义的P帧CU划分统计8*8------------0;16*16------------1;32*32------------2;64*64------------3;
+extern long intra[100];//intra 的PU数目
+extern long inter[100];//inter 的PU数目
+extern long skip[100];//skip 的PU数目
 //! \ingroup TLibCommon
 //! \{
 
@@ -642,6 +675,116 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
 
 Void TComPrediction::xPredInterBlk(const ComponentID compID, TComDataCU *cu, TComPicYuv *refPic, UInt partAddr, TComMv *mv, Int width, Int height, TComYuv *dstPic, Bool bi, const Int bitDepth )
 {
+	if(width==4&&height==4)
+	{
+		P_PU_number[intra_pre_mode_index][0]++;
+		//if (intra_pre_mode_index)
+		//cout<<"3 ";
+	}
+	if(width==8&&height==8)
+	{
+		P_PU_number[intra_pre_mode_index][1]++;
+	//	if (intra_pre_mode_index)
+	//	cout<<"0 ";
+	}
+	if(width==8&&height==4)
+	{
+		P_PU_number[intra_pre_mode_index][2]++;
+	//	if (intra_pre_mode_index)
+	//	cout<<"1 ";
+	}
+	if(width==4&&height==8)
+	{
+		P_PU_number[intra_pre_mode_index][3]++;
+	//	if (intra_pre_mode_index)
+	//	cout<<"2 ";
+	}
+	if(width==16&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][4]++;
+	}
+	if(width==16&&height==8)
+	{
+		P_PU_number[intra_pre_mode_index][5]++;
+	}
+	if(width==8&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][6]++;
+	}
+	if(width==16&&height==4)
+	{
+		P_PU_number[intra_pre_mode_index][7]++;
+	}
+	if(width==4&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][8]++;
+	}
+	if(width==16&&height==12)
+	{
+		P_PU_number[intra_pre_mode_index][9]++;
+	}
+	if(width==12&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][10]++;
+	}
+	if(width==32&&height==32)
+	{
+		P_PU_number[intra_pre_mode_index][11]++;
+	}
+	if(width==32&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][12]++;
+	}
+	if(width==16&&height==32)
+	{
+		P_PU_number[intra_pre_mode_index][13]++;
+	}
+	if(width==32&&height==24)
+	{
+		P_PU_number[intra_pre_mode_index][14]++;
+	}
+	if(width==24&&height==32)
+	{
+		P_PU_number[intra_pre_mode_index][15]++;
+	}
+	if(width==32&&height==8)
+	{
+		P_PU_number[intra_pre_mode_index][16]++;
+	}
+	if(width==8&&height==32)
+	{
+		P_PU_number[intra_pre_mode_index][17]++;
+	}
+	if(width==64&&height==64)
+	{
+		P_PU_number[intra_pre_mode_index][18]++;
+	}
+	if(width==64&&height==32)
+	{
+		P_PU_number[intra_pre_mode_index][19]++;
+	}
+	if(width==32&&height==64)
+	{
+		P_PU_number[intra_pre_mode_index][20]++;
+	}
+	if(width==64&&height==48)
+	{
+		P_PU_number[intra_pre_mode_index][21]++;
+	}
+	if(width==48&&height==64)
+	{
+		P_PU_number[intra_pre_mode_index][22]++;
+	}
+	if(width==64&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][23]++;
+	}
+	if(width==16&&height==64)
+	{
+		P_PU_number[intra_pre_mode_index][24]++;
+	}
+	////////////////////////////////
+
   Int     refStride  = refPic->getStride(compID);
   Int     dstStride  = dstPic->getStride(compID);
   Int shiftHor=(2+refPic->getComponentScaleX(compID));

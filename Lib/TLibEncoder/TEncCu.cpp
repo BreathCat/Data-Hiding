@@ -1336,9 +1336,9 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
 			 //1维 N=1
 			  //cout<<"CUTargetMode[EMD_8_CUTargetMode[ii]]="<<CUTargetMode[EMD_8_CUTargetMode[ii]]<<endl;
 			  cout<<ThNum[m]<<" m="<<m<<endl;
-			  randnum = 0;//ThNum[m--];  //2N+1 ，randnum为待嵌入信息
+			  //randnum = 0;//ThNum[m--];  //2N+1 ，randnum为待嵌入信息
 			  
-			 // randnum = rand() % 3;  //2N+1 ，randnum为待嵌入信息
+			  randnum = rand() % 3;  //2N+1 ，randnum为待嵌入信息
 			  Capacity += 1.6 ;//2.8=log2(7)
 			  aim_bit = rand() % 2;
 			  switch(randnum)

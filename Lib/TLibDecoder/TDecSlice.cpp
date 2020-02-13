@@ -37,7 +37,7 @@
 
 #include "TDecSlice.h"
 #include "TDecConformance.h"
-
+#include "..\..\App\TAppDecoder\def.h"
 //! \ingroup TLibDecoder
 //! \{
 

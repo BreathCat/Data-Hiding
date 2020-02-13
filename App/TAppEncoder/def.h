@@ -10,4 +10,11 @@ extern long P_CU_number[100][4];//自己定义的P帧CU划分统计8*8------------0;16*16-
 extern long intra[100];//intra 的PU数目
 extern long inter[100];//inter 的PU数目
 extern long skip[100];//skip 的PU数目
+<<<<<<< HEAD
+=======
+extern int MessStr[100] ;//原始隐秘信息
+extern int ThNum[100] ;//三进制数
+extern int m ;//三进制数数组下标
+extern int TotalNum ;
+>>>>>>> 5f93801e4e5046a8b92461b082a5e27f5696033c
 #endif

@@ -39,13 +39,6 @@
 #include "TLibCommon/TComTU.h"
 #include "TLibCommon/TComPrediction.h"
 #include "..\..\App\TAppDecoder\def.h"
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-
->>>>>>> 5f93801e4e5046a8b92461b082a5e27f5696033c
->>>>>>> 5f2ebbb95f2fe99e9d4441362507b3cd0f283905
 //! \ingroup TLibDecoder
 //! \{
 
@@ -107,7 +100,7 @@ Void TDecCu::create( UInt uiMaxDepth, UInt uiMaxWidth, UInt uiMaxHeight, ChromaF
   m_bDecodeDQP = false;
   m_IsChromaQpAdjCoded = false;
 
-  // initialize partition order.   lzh1
+  // initialize partition order.
   UInt* piTmp = &g_auiZscanToRaster[0];
   initZscanToRaster(m_uiMaxDepth, 1, 0, piTmp);
   initRasterToZscan( uiMaxWidth, uiMaxHeight, m_uiMaxDepth );
@@ -349,12 +342,8 @@ Void TDecCu::xFinishDecodeCU( TComDataCU* pcCU, UInt uiAbsPartIdx, UInt uiDepth,
 
 Void TDecCu::xDecompressCU( TComDataCU* pCtu, UInt uiAbsPartIdx,  UInt uiDepth )
 {
-
-  // lzh2
-	cout<<"\n"<<uiAbsPartIdx<<"\n"<<uiDepth<<"\n";
   TComPic* pcPic = pCtu->getPic();
   TComSlice * pcSlice = pCtu->getSlice();
-
   const TComSPS &sps=*(pcSlice->getSPS());
 
   Bool bBoundary = false;
@@ -423,14 +412,6 @@ Void TDecCu::xDecompressCU( TComDataCU* pCtu, UInt uiAbsPartIdx,  UInt uiDepth )
   }
 
   xCopyToPic( m_ppcCU[uiDepth], pcPic, uiAbsPartIdx, uiDepth );
-  /////////////////////////////
-  UInt CuWidth = m_ppcCU[uiDepth] ->getWidth ( 0 );
-  UInt CuHeight = m_ppcCU[uiDepth] ->getHeight ( 0 );
-
- 
-
-
-  ////////////////////////////////
 }
 
 Void TDecCu::xReconInter( TComDataCU* pcCU, UInt uiDepth )
@@ -521,9 +502,6 @@ TDecCu::xIntraRecBlk(       TComYuv*    pcRecoYuv,
   }
 
   const UInt uiChPredMode  = pcCU->getIntraDir( toChannelType(compID), uiAbsPartIdx );
-  ////////////////////////////////////////////
-  intra_pre_mode[intra_pre_mode_index][uiChPredMode]++;
-  //////////////////////////////////////
   const UInt partsPerMinCU = 1<<(2*(sps.getMaxTotalCUDepth() - sps.getLog2DiffMaxMinCodingBlockSize()));
   const UInt uiChCodedMode = (uiChPredMode==DM_CHROMA_IDX && !bIsLuma) ? pcCU->getIntraDir(CHANNEL_TYPE_LUMA, getChromasCorrespondingPULumaIdx(uiAbsPartIdx, chFmt, partsPerMinCU)) : uiChPredMode;
   const UInt uiChFinalMode = ((chFmt == CHROMA_422)       && !bIsLuma) ? g_chroma422IntraAngleMappingTable[uiChCodedMode] : uiChCodedMode;
@@ -678,7 +656,6 @@ TDecCu::xIntraRecBlk(       TComYuv*    pcRecoYuv,
 Void
 TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiDepth )
 {
-<<<<<<< HEAD
 	if(pcCU->m_pcSlice->m_eSliceType ==I_SLICE){
 		if(GOPsize==0){
 			GOPsize=intra_pre_mode_index;
@@ -687,9 +664,6 @@ TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiDepth )
 	}
 	
 UInt uiInitTrDepth0 = ( pcCU->getPartitionSize(0) != SIZE_2Nx2N ? 1 : 0 );
-=======
-	UInt uiInitTrDepth0 = ( pcCU->getPartitionSize(0) != SIZE_2Nx2N ? 1 : 0 );
->>>>>>> 5f2ebbb95f2fe99e9d4441362507b3cd0f283905
 	switch(uiDepth) 
 	{
 	case 0:
@@ -758,13 +732,6 @@ UInt uiInitTrDepth0 = ( pcCU->getPartitionSize(0) != SIZE_2Nx2N ? 1 : 0 );
 	}
 	///////////////////////
 	//////////////////////  
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-
->>>>>>> 5f93801e4e5046a8b92461b082a5e27f5696033c
->>>>>>> 5f2ebbb95f2fe99e9d4441362507b3cd0f283905
   if (pcCU->getIPCMFlag(0))
   {
     xReconPCM( pcCU, uiDepth );

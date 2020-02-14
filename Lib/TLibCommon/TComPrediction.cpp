@@ -39,7 +39,8 @@
 #include "TComPrediction.h"
 #include "TComPic.h"
 #include "TComTU.h"
-
+#include "..\..\App\TAppDecoder\def.h"
+#include "C:\Users\45452\OneDrive\科研\HEVC_信息隐藏EMD\A hiding\HM-16.15\source\App\TAppDecoder\def.h"
 //! \ingroup TLibCommon
 //! \{
 
@@ -642,6 +643,123 @@ Void TComPrediction::xPredInterBi ( TComDataCU* pcCU, UInt uiPartAddr, Int iWidt
 
 Void TComPrediction::xPredInterBlk(const ComponentID compID, TComDataCU *cu, TComPicYuv *refPic, UInt partAddr, TComMv *mv, Int width, Int height, TComYuv *dstPic, Bool bi, const Int bitDepth )
 {
+	
+	if(( *(cu->m_skipFlag)))
+		skip[intra_pre_mode_index]++;
+	else
+		inter[intra_pre_mode_index]++;
+	//cout<<width<<height<<endl;
+	//cout<<intra_pre_mode_index << P_PU_number[intra_pre_mode_index][1] <<endl;
+	
+	if(width==4&&height==4)
+	{
+		P_PU_number[intra_pre_mode_index][0]++;
+		//if (intra_pre_mode_index)
+		cout<<"3 "<<endl;
+	}
+	if(width==8&&height==8)
+	{
+		P_PU_number[intra_pre_mode_index][1]++;
+	//	if (intra_pre_mode_index)
+	//	cout<<"0 ";
+	}
+	if(width==8&&height==4)
+	{
+		P_PU_number[intra_pre_mode_index][2]++;
+	//	if (intra_pre_mode_index)
+	//	cout<<"1 ";
+	}
+	if(width==4&&height==8)
+	{
+		P_PU_number[intra_pre_mode_index][3]++;
+	//	if (intra_pre_mode_index)
+	//	cout<<"2 ";
+	}
+	if(width==16&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][4]++;
+	}
+	if(width==16&&height==8)
+	{
+		P_PU_number[intra_pre_mode_index][5]++;
+	}
+	if(width==8&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][6]++;
+	}
+	if(width==16&&height==4)
+	{
+		P_PU_number[intra_pre_mode_index][7]++;
+	}
+	if(width==4&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][8]++;
+	}
+	if(width==16&&height==12)
+	{
+		P_PU_number[intra_pre_mode_index][9]++;
+	}
+	if(width==12&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][10]++;
+	}
+	if(width==32&&height==32)
+	{
+		P_PU_number[intra_pre_mode_index][11]++;
+	}
+	if(width==32&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][12]++;
+	}
+	if(width==16&&height==32)
+	{
+		P_PU_number[intra_pre_mode_index][13]++;
+	}
+	if(width==32&&height==24)
+	{
+		P_PU_number[intra_pre_mode_index][14]++;
+	}
+	if(width==24&&height==32)
+	{
+		P_PU_number[intra_pre_mode_index][15]++;
+	}
+	if(width==32&&height==8)
+	{
+		P_PU_number[intra_pre_mode_index][16]++;
+	}
+	if(width==8&&height==32)
+	{
+		P_PU_number[intra_pre_mode_index][17]++;
+	}
+	if(width==64&&height==64)
+	{
+		P_PU_number[intra_pre_mode_index][18]++;
+	}
+	if(width==64&&height==32)
+	{
+		P_PU_number[intra_pre_mode_index][19]++;
+	}
+	if(width==32&&height==64)
+	{
+		P_PU_number[intra_pre_mode_index][20]++;
+	}
+	if(width==64&&height==48)
+	{
+		P_PU_number[intra_pre_mode_index][21]++;
+	}
+	if(width==48&&height==64)
+	{
+		P_PU_number[intra_pre_mode_index][22]++;
+	}
+	if(width==64&&height==16)
+	{
+		P_PU_number[intra_pre_mode_index][23]++;
+	}
+	if(width==16&&height==64)
+	{
+		P_PU_number[intra_pre_mode_index][24]++;
+	}
+	////////////////////////////////
   Int     refStride  = refPic->getStride(compID);
   Int     dstStride  = dstPic->getStride(compID);
   Int shiftHor=(2+refPic->getComponentScaleX(compID));

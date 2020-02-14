@@ -38,7 +38,7 @@
 #include "TDecCu.h"
 #include "TLibCommon/TComTU.h"
 #include "TLibCommon/TComPrediction.h"
-
+#include "..\..\App\TAppDecoder\def.h"
 //! \ingroup TLibDecoder
 //! \{
 
@@ -656,6 +656,82 @@ TDecCu::xIntraRecBlk(       TComYuv*    pcRecoYuv,
 Void
 TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiDepth )
 {
+	if(pcCU->m_pcSlice->m_eSliceType ==I_SLICE){
+		if(GOPsize==0){
+			GOPsize=intra_pre_mode_index;
+		}
+		 cout<<"GOPsize is "<< GOPsize<<endl;
+	}
+	
+UInt uiInitTrDepth0 = ( pcCU->getPartitionSize(0) != SIZE_2Nx2N ? 1 : 0 );
+	switch(uiDepth) 
+	{
+	case 0:
+		{
+			if(pcCU->m_pcSlice->m_eSliceType ==I_SLICE)
+			{
+				I_PU_number[intra_pre_mode_index][4]++;  //64*64
+			}
+			if(pcCU->m_pcSlice->m_eSliceType ==P_SLICE)
+			{
+				P_PU_number[intra_pre_mode_index][18]++;
+			}
+			intra[intra_pre_mode_index]++;
+			break;
+		}
+	case 1:
+		{
+			if(pcCU->m_pcSlice->m_eSliceType ==I_SLICE)
+			{
+				I_PU_number[intra_pre_mode_index][3]++;//32*32
+			}
+			if(pcCU->m_pcSlice->m_eSliceType ==P_SLICE)
+			{
+				P_PU_number[intra_pre_mode_index][11]++;
+			}
+			intra[intra_pre_mode_index]++;
+			break;
+		}
+	case 2:
+		{
+			if(pcCU->m_pcSlice->m_eSliceType ==I_SLICE)
+			{
+				I_PU_number[intra_pre_mode_index][2]++;//16*16
+			}
+			if(pcCU->m_pcSlice->m_eSliceType ==P_SLICE)
+			{
+				P_PU_number[intra_pre_mode_index][4]++;
+			}
+			intra[intra_pre_mode_index]++;
+			break;
+		}
+	case 3:
+		{
+			if(pcCU->m_pcSlice->m_eSliceType ==I_SLICE)
+			{
+				if(uiInitTrDepth0==0)
+					I_PU_number[intra_pre_mode_index][1]++;//8*8
+				else if(uiInitTrDepth0==1)
+					I_PU_number[intra_pre_mode_index][0]+=4;//4*4
+			}
+			if(pcCU->m_pcSlice->m_eSliceType ==P_SLICE)
+			{
+				if(uiInitTrDepth0==0)
+					P_PU_number[intra_pre_mode_index][1]++;
+				else if(uiInitTrDepth0==1)
+					P_PU_number[intra_pre_mode_index][0]+=4;
+			}
+			if(uiInitTrDepth0==0)
+				intra[intra_pre_mode_index]++;
+			else if(uiInitTrDepth0==1)
+				intra[intra_pre_mode_index]+=4;
+			break;
+		}
+	default:
+		{cout<<"PU error!!!!!!!!!!!!!"<<endl;}
+	}
+	///////////////////////
+	//////////////////////  
   if (pcCU->getIPCMFlag(0))
   {
     xReconPCM( pcCU, uiDepth );

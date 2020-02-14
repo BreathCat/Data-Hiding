@@ -37,7 +37,7 @@
 
 #include "TDecSlice.h"
 #include "TDecConformance.h"
-
+#include "..\..\App\TAppDecoder\def.h"
 //! \ingroup TLibDecoder
 //! \{
 
@@ -267,7 +267,7 @@ Void TDecSlice::decompressSlice(TComInputBitstream** ppcSubstreams, TComPic* pcP
   {
     m_lastSliceSegmentEndContextState.loadContexts( pcSbacDecoder );//ctx end of dep.slice
   }
-
+  intra_pre_mode_index++;//在最后加这一句
 }
 
 //! \}

@@ -1262,7 +1262,7 @@ struct WPACDCParam
 /// slice header class
 class TComSlice
 {
-
+public: SliceType                  m_eSliceType;
 private:
   //  Bitstream writing
   Bool                       m_saoEnabledFlag[MAX_NUM_CHANNEL_TYPE];
@@ -1277,7 +1277,7 @@ private:
   Int                        m_rpsIdx;               //< index of used RPS in the SPS or -1 for local RPS in the slice header
   TComRefPicListModification m_RefPicListModification;
   NalUnitType                m_eNalUnitType;         ///< Nal unit type for the slice
-  SliceType                  m_eSliceType;
+  //SliceType                  m_eSliceType;
   Int                        m_iSliceQp;
   Bool                       m_dependentSliceSegmentFlag;
 #if ADAPTIVE_QP_SELECTION

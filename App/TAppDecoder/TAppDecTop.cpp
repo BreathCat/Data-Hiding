@@ -87,7 +87,7 @@ Void TAppDecTop::decode()
 {
   Int                 poc;
   TComList<TComPic*>* pcListPic = NULL;
-
+  
   ifstream bitstreamFile(m_bitstreamFileName.c_str(), ifstream::in | ifstream::binary);
   if (!bitstreamFile)
   {

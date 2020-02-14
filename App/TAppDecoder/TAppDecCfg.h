@@ -55,9 +55,16 @@
 /// Decoder configuration class
 class TAppDecCfg
 {
+<<<<<<< HEAD
 public: std::string   m_bitstreamFileName;                    ///< input bitstream file name
 protected:
   //std::string   m_bitstreamFileName;                    ///< input bitstream file name
+=======
+	public:
+	std::string   m_bitstreamFileName;                    ///< input bitstream file name
+protected:
+  
+>>>>>>> 5f2ebbb95f2fe99e9d4441362507b3cd0f283905
   std::string   m_reconFileName;                        ///< output reconstruction file name
   Int           m_iSkipFrame;                           ///< counter for frames prior to the random access point to skip
   Int           m_outputBitDepth[MAX_NUM_CHANNEL_TYPE]; ///< bit depth used for writing output

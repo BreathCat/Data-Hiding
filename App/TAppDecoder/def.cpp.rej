@@ -1,0 +1,18 @@
+diff a/App/TAppDecoder/def.cpp b/App/TAppDecoder/def.cpp	(rejected hunks)
+@@ -9,7 +9,14 @@
+  long intra[100]={0};//intra ��PU��Ŀ
+  long inter[100]={0};//inter ��PU��Ŀ
+  long skip[100]={0};//skip ��PU��Ŀ
++<<<<<<< HEAD
+  int MessStr[100] = {0};//ԭʼ������Ϣ
+ int ThNum[100] = {0};//��������
+ int m = 0;//�������������±�
+-int TotalNum = 0; //���鳤��
+\ No newline at end of file
++int TotalNum = 0; //���鳤��
++=======
++int MessStr[100] ;//ԭʼ������Ϣ
++int ThNum[100] ;//��������
++int m ;//�������������±�
++int TotalNum ;
++>>>>>>> 5f93801e4e5046a8b92461b082a5e27f5696033c

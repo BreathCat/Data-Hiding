@@ -410,8 +410,11 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
 	  }
 
 	  int gap = 5-(m-mlast);
-	  for (int loop = 0; loop<gap;loop++)
+	  for (int loop = 0; loop<gap;loop++){
 		  ThNum[++m] = 0;
+		  cout<<"0";
+	  }
+	  cout<<endl;
   }
   //以上读隐藏信息----------------------//
 
@@ -1335,9 +1338,10 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
 		  {
 			 //1维 N=1
 			  //cout<<"CUTargetMode[EMD_8_CUTargetMode[ii]]="<<CUTargetMode[EMD_8_CUTargetMode[ii]]<<endl;
-			  cout<<ThNum[m]<<" m="<<m<<endl;
-			  randnum = 0;//ThNum[m--];  //2N+1 ，randnum为待嵌入信息
-			  
+			 if(m>-1){
+				cout<<ThNum[m]<<" m="<<m<<" ";
+			  randnum = ThNum[m--];  //2N+1 ，randnum为待嵌入信息
+			 
 			 // randnum = rand() % 3;  //2N+1 ，randnum为待嵌入信息
 			  Capacity += 1.6 ;//2.8=log2(7)
 			  aim_bit = rand() % 2;
@@ -1347,26 +1351,27 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
 					if( aim_bit == 0 )
 					{
 						CUTargetMode[EMD_8_CUTargetMode[ii]] = 0 ; //2NX2N 8*8
-						cout<<"8*8 ";
+						cout<<"8*8 "<<endl;
 					}
 					else 
 					{
 						CUTargetMode[EMD_8_CUTargetMode[ii]] = 3 ; //NXN 4*4
-						cout<<"4*4 ";
+						cout<<"4*4 "<<endl;
 					}
 					break;
 
 				 case 1:
 				    CUTargetMode[EMD_8_CUTargetMode[ii]] = 1 ;	//2N*N 8*4	
-					cout<<"8*4";
+					cout<<"8*4 "<<endl;
 					break;
 
 				 case 2:
 					CUTargetMode[EMD_8_CUTargetMode[ii]] = 2 ;	//N*2N 4*8		
-					cout<<"4*8 ";
+					cout<<"4*8 "<<endl;
 					break;
-				
-		    }
+			  }
+			  }
+			 else{}
 	  
         }
     }

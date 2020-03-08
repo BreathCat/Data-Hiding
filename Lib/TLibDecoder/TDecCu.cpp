@@ -412,6 +412,8 @@ Void TDecCu::xDecompressCU( TComDataCU* pCtu, UInt uiAbsPartIdx,  UInt uiDepth )
   }
 
   xCopyToPic( m_ppcCU[uiDepth], pcPic, uiAbsPartIdx, uiDepth );
+
+ 
 }
 
 Void TDecCu::xReconInter( TComDataCU* pcCU, UInt uiDepth )
@@ -656,12 +658,7 @@ TDecCu::xIntraRecBlk(       TComYuv*    pcRecoYuv,
 Void
 TDecCu::xReconIntraQT( TComDataCU* pcCU, UInt uiDepth )
 {
-	if(pcCU->m_pcSlice->m_eSliceType ==I_SLICE){
-		if(GOPsize==0){
-			GOPsize=intra_pre_mode_index;
-		}
-		 cout<<"GOPsize is "<< GOPsize<<endl;
-	}
+	
 	
 UInt uiInitTrDepth0 = ( pcCU->getPartitionSize(0) != SIZE_2Nx2N ? 1 : 0 );
 	switch(uiDepth) 

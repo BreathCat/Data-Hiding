@@ -63,7 +63,7 @@ long P_CU_number[100][4]={0};//自己定义的P帧CU划分统计
 int ThNum[100] = {0};//三进制数
 int m = 0;//三进制数数组下标
 int TotalNum = 0; //数组长度
-int GOPsize = 0;
+int GOPsize = 32;
 //! \ingroup TAppDecoder
 //! \{
 
@@ -172,7 +172,7 @@ int main(int argc, char* argv[])
   /////////////////////////
   for(int liang=0;liang<601;liang++)
   {
-	  if(((liang%GOPsize)==0&&GOPsize!=0)||liang==0)
+	  if(liang%GOPsize==0)
 	  {
 		  //cout<<"num_frame:"<<liang<<endl;
 		  for(int xiao=0;xiao<5;xiao++)

@@ -372,7 +372,7 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
    while(MessStr[TotalNum++]){
    }
 
-   for(int i = 0; i<TotalNum-1;i++)
+   for(int i = 0; i<TotalNum-1;i++)//读信息存成p进制数
    {
 
 	  n = (int)MessStr[i];
@@ -387,15 +387,15 @@ Void TEncCu::compressCtu( TComDataCU* pCtu )////------------------------------yy
 		printf("%d",c); 
 	  }
 
-	  int gap = 5-(m-mlast);
+	  int gap = 5-(m-mlast);//这里为了ASC码表，用五位三进制数表示。所以五位中要补零
 	  for (int loop = 0; loop<gap;loop++)
 		  ThNum[++m] = 0;
 
    }
 
-   // n是总字符数量,放在ThNum数组最后5位，m到m-1
-   n = 0;
-   for(int i =0;MessStr[i]!=0;i++){
+   
+   n = 0;// n是总字符数量,放在ThNum数组最后5位，m到m-1
+   for(int i =0;MessStr[i]!=0;i++){           
 	   n++;
    }
 	  printf("\nn = %d\n",n);
